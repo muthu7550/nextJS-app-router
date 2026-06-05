@@ -11,12 +11,12 @@ import fs from "fs/promises";
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: { id: string } }
 ) {
   try {
     await dbConnect();
 
-    const { id } = await params;
+    const { id } = params;
 
     const user = await Users.findById(id);
 
@@ -44,12 +44,12 @@ export async function GET(
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: { id: string } }
 ) {
   try {
     await dbConnect();
 
-    const { id } = await params;
+    const { id } = params;
 
     const formData = await request.formData();
 
@@ -61,7 +61,7 @@ export async function PUT(
     const file = formData.get("image") as File | null;
     const existingImage = formData.get("existingImage");
 
-    let imagePath = existingImage as string;
+    let imagePath = (existingImage as string) || "";
 
     if (file && file.size > 0) {
       const buffer = Buffer.from(await file.arrayBuffer());
@@ -69,18 +69,11 @@ export async function PUT(
       const filename =
         Date.now() + "_" + file.name.replace(/\s+/g, "_");
 
-      const uploadDir = path.join(
-        process.cwd(),
-        "public",
-        "uploads"
-      );
+      const uploadDir = path.join(process.cwd(), "public", "uploads");
 
       await fs.mkdir(uploadDir, { recursive: true });
 
-      await fs.writeFile(
-        path.join(uploadDir, filename),
-        buffer
-      );
+      await fs.writeFile(path.join(uploadDir, filename), buffer);
 
       imagePath = `/uploads/${filename}`;
     }
@@ -94,9 +87,7 @@ export async function PUT(
         itemCount,
         image: imagePath,
       },
-      {
-        new: true,
-      }
+      { new: true }
     );
 
     if (!updatedUser) {
@@ -126,12 +117,12 @@ export async function PUT(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: { id: string } }
 ) {
   try {
     await dbConnect();
 
-    const { id } = await params;
+    const { id } = params;
 
     const deletedUser = await Users.findByIdAndDelete(id);
 
