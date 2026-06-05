@@ -17,20 +17,28 @@ import { useEffect, useState } from "react";
 function ProfileDropdown() {
   const router = useRouter();
 
+  const [parsedUserDetails, setParsedUserDetails] = useState(null);
+
+  useEffect(() => {
+    const user = getDecryptedItem("user");
+
+    const parsed =
+      typeof user === "string"
+        ? JSON.parse(user)
+        : user;
+
+    setParsedUserDetails(parsed);
+  }, []);
+
   function handleNavigate(path) {
     if (path === "logout") {
-      localStorage.clear()
+      if (typeof window !== "undefined") {
+        localStorage.clear();
+      }
+
       router.push("/auth/login");
     }
   }
-
-  let user= getDecryptedItem('user');
-  const parsedUserDetails =
-  typeof userDetails === "string"
-    ? JSON.parse(user)
-    : user;
-
-
 
   const profileIcon = (
     <div className="flex items-center gap-3 cursor-pointer">
@@ -39,6 +47,7 @@ function ProfileDropdown() {
         alt="profile"
         className="w-10 h-10 rounded-full border-2 border-blue-500"
       />
+
       <div className="hidden md:block text-start">
         <h6 className="text-white text-sm font-semibold m-0">
           {parsedUserDetails?.name}
