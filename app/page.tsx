@@ -1,7 +1,7 @@
 // require('dotenv').config();
 
 export default function Home() {
-         throw new Error("Triggering global error boundary"); 
+        //  throw new Error("Triggering global error boundary"); 
 
   return (
     <div className="flex flex-col flex-1 items-center justify-center">

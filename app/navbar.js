@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { NavDropdown } from "react-bootstrap";
 import { useCounterStore } from './stores/useCounterStore.ts'
+import {getDecryptedItem} from './auth/encript.js'
 
 import {
   FaUserCircle,
@@ -11,15 +12,25 @@ import {
   FaSearch,
   FaCog,
 } from "react-icons/fa";
+import { useEffect, useState } from "react";
 
 function ProfileDropdown() {
   const router = useRouter();
 
   function handleNavigate(path) {
     if (path === "logout") {
+      localStorage.clear()
       router.push("/auth/login");
     }
   }
+
+  let user= getDecryptedItem('user');
+  const parsedUserDetails =
+  typeof userDetails === "string"
+    ? JSON.parse(user)
+    : user;
+
+
 
   const profileIcon = (
     <div className="flex items-center gap-3 cursor-pointer">
@@ -28,14 +39,13 @@ function ProfileDropdown() {
         alt="profile"
         className="w-10 h-10 rounded-full border-2 border-blue-500"
       />
-
       <div className="hidden md:block text-start">
         <h6 className="text-white text-sm font-semibold m-0">
-          John Doe
+          {parsedUserDetails?.name}
         </h6>
 
         <p className="text-gray-400 text-xs m-0">
-          Administrator
+          {parsedUserDetails?.email}
         </p>
       </div>
     </div>
