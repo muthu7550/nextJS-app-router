@@ -1,5 +1,6 @@
-    import CryptoJS from 'crypto-js';
-
+ "use client"
+ 
+ import CryptoJS from 'crypto-js';
 
 const SECRET_KEY = 'my-secret-key-123';
 
