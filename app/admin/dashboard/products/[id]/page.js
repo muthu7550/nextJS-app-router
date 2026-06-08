@@ -106,7 +106,7 @@ export default function DetailsPage() {
   const fetchProducts = async (id) => {
     console.log(id, "ijd");
     try {
-      const response = await fetch(`http://localhost:3000/api/${id}`, {
+      const response = await fetch(`/api/${id}`, {
         cache: "no-store",
       });
 
