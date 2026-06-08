@@ -31,7 +31,7 @@ export default function Register() {
   function handleSubmit(){
   console.log(user)
 
-fetch('http://localhost:3000/api/register', {
+fetch('/api/login', {
   method: 'POST',
   headers: {
     'Content-Type': 'application/json',
