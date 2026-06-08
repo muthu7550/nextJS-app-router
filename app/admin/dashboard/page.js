@@ -61,7 +61,7 @@ const imageurl =
   const handleDelete = async () => {
     layoutLoading(true)
     try {
-      await fetch(`http://localhost:3000/api/${product._id}`, {
+      await fetch(`/api/${product._id}`, {
         method: "DELETE",
       });
 
@@ -94,7 +94,7 @@ const imageurl =
       formData.append('image', product.image);
     }
 
-    fetch(`http://localhost:3000/api/${product._id}`, {
+    fetch(`/api/${product._id}`, {
       method: 'PUT',
       body: formData,
     })
@@ -138,7 +138,7 @@ const imageurl =
 
 
 
-    fetch(`http://localhost:3000/api/${product._id}`, {
+    fetch(`/api/${product._id}`, {
       method: 'PUT',
       // IMPORTANT: Do NOT add 'Content-Type' header for FormData
       body: formData
@@ -337,7 +337,7 @@ export default function Dashboard() {
 
   const fetchProducts = async () => {
     try {
-      const response = await fetch("http://localhost:3000/api", {
+      const response = await fetch("/api", {
         cache: "no-store",
       });
 
