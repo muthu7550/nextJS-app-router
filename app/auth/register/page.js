@@ -39,16 +39,8 @@ fetch('/api/login', {
   body: JSON.stringify(user),
 })
   .then((res) => res.json())
-  .then((data) => {
-    console.log(data.token,"tokennm")
-    console.log(data.user,"userrm")
-
-    setEncryptedItem("token",data.token) 
-    setEncryptedItem("user",data.user)
-
-      //  localStorage.setItem("token", data.token);
-      //   localStorage.setItem("user", JSON.stringify(data.user));
-     router.push('/admin/dashboard')
+  .then(() => {
+     router.push('/auth/login')
 }
 
 )
