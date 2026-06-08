@@ -38,6 +38,8 @@ const imageurl =
   const items = useCounterStore((state) => state.items)
   const threshold = 12;
   const [user, setUser] = useState({})
+    const imageURL = "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQdJKDO44DuYRj3cC-KtQ7_T1vr2pmC6HSmlA&s"
+
 
   const handleMove = (e) => {
     const { left, top, width, height } =
@@ -79,7 +81,6 @@ const imageurl =
 
   const handleCountIncrease = (product) => {
     const newCount = (product.itemCount || 0) + 1;
-    const imageURL = "https://www.google.com/imgres?q=electronic%20items&imgurl=https%3A%2F%2F3.imimg.com%2Fdata3%2FTB%2FKQ%2FMY-238885%2Fvideocon-ha-500x500.jpg&imgrefurl=https%3A%2F%2Fwww.indiamart.com%2Fproddetail%2Fconsumer-electronics-and-home-appliances-9836798897.html%3Fsrsltid%3DAfmBOoo4YkEm6Y-RDAbWmMqhPEUlLOKoBxpezqyDyRV_vpSd0qmmuHW_&docid=G1vvEjH9kG9U2M&tbnid=RQVDaK42999ehM&vet=12ahUKEwi0w6KNl_eUAxVrUGwGHRxDGWYQnPAOegQIGRAB..i&w=500&h=250&hcb=2&ved=2ahUKEwi0w6KNl_eUAxVrUGwGHRxDGWYQnPAOegQIGRAB"
     const formData = new FormData();
     formData.append('name', product.name);
     formData.append('description', product.description);
@@ -191,7 +192,7 @@ const imageurl =
       <div className="relative overflow-hidden">
         <img
           src={imageURL}
-          alt={product.name}
+          alt={imageURL}
           className="h-72 w-full object-cover transition duration-700 group-hover:scale-110"
         />
 
