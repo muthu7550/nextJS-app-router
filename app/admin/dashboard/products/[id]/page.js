@@ -19,7 +19,7 @@ export default function DetailsPage() {
   const removeItem = useCounterStore((state) => state.removeItem);
 
   useEffect(() => {
-    fetch(`http://localhost:3000/api/${id}`)
+    fetch(`api/${id}`)
       .then((response) => response.json())
       .then((data) => {
         setProductDetails(data);
@@ -48,7 +48,7 @@ export default function DetailsPage() {
       formData.append("image", product.image);
     }
 
-    fetch(`http://localhost:3000/api/${product._id}`, {
+    fetch(`/api/${product._id}`, {
       method: "PUT",
       body: formData,
     })
