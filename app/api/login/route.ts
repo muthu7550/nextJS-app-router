@@ -6,25 +6,35 @@ import { SignJWT } from "jose";
 
 export async function POST(request: NextRequest) {
   try {
-    await dbConnect();
+    console.log("=== LOGIN API START ===");
 
+    // 1. DB CONNECT
+    console.log("Connecting DB...");
+    await dbConnect();
+    console.log("DB Connected");
+
+    // 2. READ BODY
     const body = await request.json();
+    console.log("Request Body:", body);
+
     const { email, password } = body;
 
-    // ======================
-    // 1. VALIDATION (IMPORTANT)
-    // ======================
+    // 3. VALIDATION
     if (!email || !password) {
+      console.log("Validation failed: missing email/password");
+
       return NextResponse.json(
         { error: "Email and password are required" },
         { status: 400 }
       );
     }
 
-    // ======================
-    // 2. FIND USER
-    // ======================
+    // 4. FIND USER
+    console.log("Searching user:", email);
+
     const user = await register.findOne({ email });
+
+    console.log("User Found:", user ? "YES" : "NO");
 
     if (!user) {
       return NextResponse.json(
@@ -33,20 +43,19 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // ======================
-    // 3. PASSWORD CHECK (SAFE)
-    // ======================
+    // 5. PASSWORD CHECK
     if (!user.password) {
+      console.log("User password missing in DB");
+
       return NextResponse.json(
         { error: "User password missing in DB" },
         { status: 500 }
       );
     }
 
-    const isPasswordValid = await bcrypt.compare(
-      password,
-      user.password
-    );
+    const isPasswordValid = await bcrypt.compare(password, user.password);
+
+    console.log("Password Valid:", isPasswordValid);
 
     if (!isPasswordValid) {
       return NextResponse.json(
@@ -55,14 +64,17 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // ======================
-    // 4. JWT SECRET CHECK
-    // ======================
+    // 6. ENV CHECK
     if (!process.env.JWT_SECRET) {
-      throw new Error("JWT_SECRET is not defined in environment variables");
+      console.log("JWT_SECRET missing in env");
+
+      throw new Error("JWT_SECRET is not defined");
     }
 
     const secret = new TextEncoder().encode(process.env.JWT_SECRET);
+
+    // 7. CREATE TOKEN
+    console.log("Creating JWT...");
 
     const token = await new SignJWT({
       userId: user._id.toString(),
@@ -72,9 +84,9 @@ export async function POST(request: NextRequest) {
       .setExpirationTime("2h")
       .sign(secret);
 
-    // ======================
-    // 5. RESPONSE
-    // ======================
+    console.log("JWT Created");
+
+    // 8. RESPONSE
     return NextResponse.json({
       message: "Login successful",
       token,
@@ -84,11 +96,16 @@ export async function POST(request: NextRequest) {
         name: user.name,
       },
     });
-  } catch (error) {
-    console.error("Login Error:", error);
+  } catch (error: any) {
+    console.error("========== LOGIN ERROR ==========");
+    console.error("Message:", error?.message);
+    console.error("Stack:", error?.stack);
+    console.error("Full Error:", error);
 
     return NextResponse.json(
-      { error: "Internal Server Error" },
+      {
+        error: error?.message || "Internal Server Error",
+      },
       { status: 500 }
     );
   }

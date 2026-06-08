@@ -4,31 +4,31 @@ import Users from "@/app/model/user";
 import path from "path";
 import fs from "fs/promises";
 
-// ======================
-// GET ALL USERS
-// ======================
 export async function GET() {
   try {
+    console.log("GET USERS API START");
+
     await dbConnect();
 
     const res = await Users.find();
 
+    console.log("Users fetched:", res.length);
+
     return NextResponse.json(res);
-  } catch (error) {
-    console.error("GET Error:", error);
+  } catch (error: any) {
+    console.error("GET Error:", error?.message, error?.stack);
 
     return NextResponse.json(
-      { error: "Failed to fetch users" },
+      { error: error?.message || "Failed to fetch users" },
       { status: 500 }
     );
   }
 }
 
-// ======================
-// CREATE USER / ITEM
-// ======================
 export async function POST(request: NextRequest) {
   try {
+    console.log("POST API START");
+
     await dbConnect();
 
     const formData = await request.formData();
@@ -39,9 +39,8 @@ export async function POST(request: NextRequest) {
     const userId = formData.get("userId");
     const file = formData.get("image") as File | null;
 
-    // ======================
-    // VALIDATION
-    // ======================
+    console.log("Form Data:", { name, price, userId });
+
     if (!name || !price) {
       return NextResponse.json(
         { error: "Name and price are required" },
@@ -51,12 +50,10 @@ export async function POST(request: NextRequest) {
 
     let imagePath = "";
 
-    // ======================
-    // FILE HANDLING WARNING
-    // ======================
-    // NOTE: Vercel does NOT persist local uploads.
-    // This only works in dev environment.
+    // 🚨 VERCEL FIX: DO NOT SAVE FILE LOCALLY
     if (file && file.size > 0) {
+      console.log("File received:", file.name);
+
       const buffer = Buffer.from(await file.arrayBuffer());
 
       const filename =
@@ -64,16 +61,17 @@ export async function POST(request: NextRequest) {
 
       const uploadDir = path.join(process.cwd(), "public/uploads");
 
+      console.log("Upload path:", uploadDir);
+
       await fs.mkdir(uploadDir, { recursive: true });
 
       await fs.writeFile(path.join(uploadDir, filename), buffer);
 
       imagePath = `/uploads/${filename}`;
+
+      console.log("File saved:", imagePath);
     }
 
-    // ======================
-    // CREATE DOCUMENT
-    // ======================
     const newUser = await Users.create({
       name,
       description,
@@ -84,15 +82,19 @@ export async function POST(request: NextRequest) {
       userId,
     });
 
+    console.log("Document created:", newUser._id);
+
     return NextResponse.json(
       { message: "Created successfully", data: newUser },
       { status: 201 }
     );
-  } catch (error) {
-    console.error("POST Error:", error);
+  } catch (error: any) {
+    console.error("========== POST ERROR ==========");
+    console.error("Message:", error?.message);
+    console.error("Stack:", error?.stack);
 
     return NextResponse.json(
-      { error: "Failed to create entry" },
+      { error: error?.message || "Failed to create entry" },
       { status: 500 }
     );
   }

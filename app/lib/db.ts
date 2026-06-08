@@ -1,29 +1,29 @@
-import mongoose from 'mongoose';
+import mongoose from "mongoose";
 
-const MONGODB_URI =  'mongodb://localhost:27017/mydb';
-
-if (!MONGODB_URI) {
-  throw new Error('Please define the MONGODB_URI environment variable inside .env.local');
-}
+const MONGODB_URI = "MONGODB_URI=mongodb+srv://mecmarimuthuit:marimuthu@cluster0.sfbeg.mongodb.net/jobportal?retryWrites=true&w=majority";
 
 let cached = (global as any).mongoose;
 
 if (!cached) {
-  cached = (global as any).mongoose = { conn: null, promise: null };
+  cached = (global as any).mongoose = {
+    conn: null,
+    promise: null,
+  };
 }
 
 async function dbConnect() {
   if (cached.conn) return cached.conn;
 
   if (!cached.promise) {
-    cached.promise = mongoose.connect(MONGODB_URI).then((m) => m);
+    cached.promise = mongoose.connect(MONGODB_URI);
   }
-  
+
   try {
     cached.conn = await cached.promise;
-  } catch (e) {
+  } catch (error) {
     cached.promise = null;
-    throw e;
+    console.error("MongoDB Error:", error);
+    throw error;
   }
 
   return cached.conn;
