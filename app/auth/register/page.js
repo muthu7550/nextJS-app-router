@@ -43,7 +43,7 @@ fetch('/api/login', {
     console.log(data.token,"tokennm")
     console.log(data.user,"userrm")
 
-    setEncryptedItem("token",data.token)
+    setEncryptedItem("token",data.token) 
     setEncryptedItem("user",data.user)
 
       //  localStorage.setItem("token", data.token);
