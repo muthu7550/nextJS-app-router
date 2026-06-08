@@ -3,6 +3,7 @@ import dbConnect from "@/app/lib/db";
 import Users from "@/app/model/user";
 import path from "path";
 import fs from "fs/promises";
+import cloudinary from "@/app/lib/cloudinary";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -52,20 +53,29 @@ export async function POST(request: NextRequest) {
     let imagePath = "";
 
     if (file && file.size > 0) {
-      const buffer = Buffer.from(await file.arrayBuffer());
+      const bytes = await file.arrayBuffer();
+      const buffer = Buffer.from(bytes);
 
-      const filename =
-        Date.now() + "_" + file.name.replace(/\s+/g, "_");
-
-      const uploadDir = path.join(
-        process.cwd(),
-        "public/uploads"
+      const result: any = await new Promise(
+        (resolve, reject) => {
+          cloudinary.uploader
+            .upload_stream(
+              {
+                folder: "products",
+              },
+              (error, result) => {
+                if (error) {
+                  reject(error);
+                } else {
+                  resolve(result);
+                }
+              }
+            )
+            .end(buffer);
+        }
       );
 
-      await fs.mkdir(uploadDir, { recursive: true });
-      await fs.writeFile(path.join(uploadDir, filename), buffer);
-
-      imagePath = `/uploads/${filename}`;
+      imagePath = result.secure_url;
     }
 
     const newUser = await Users.create({

@@ -1,127 +1,220 @@
 "use client";
-import { useEffect, useState } from 'react';
-import Button from 'react-bootstrap/Button';
-import Modal from 'react-bootstrap/Modal';
-// import fetchProducts from '../admin/dashboard/page';
-import { useRouter } from 'next/navigation';
-import {getDecryptedItem} from '../auth/encript'
 
+import { useState, useEffect } from "react";
+import Button from "react-bootstrap/Button";
+import Modal from "react-bootstrap/Modal";
+import { getDecryptedItem } from "../auth/encript";
 
-export default function CreateProductModal({ fetchProducts, show, handleClose, editProduct, isedit, setEditProduct,setLoading }) {
-  const router = useRouter();
-  const [productName, setProductName] = useState('');
-  const [productDescription, setProductDescription] = useState('');
-  const [productPrice, setProductPrice] = useState('');
-  const [productImage, setProductImage] = useState('');
-  const [previewImage,setPreviewImage] = useState('');
- 
-const handleAddProduct = () => {
-  const loggedInUser = getDecryptedItem('user')
+export default function CreateProductModal({
+  fetchProducts,
+  show,
+  handleClose,
+  editProduct,
+  isedit,
+  setEditProduct,
+  setLoading,
+}) {
+  const [productName, setProductName] = useState("");
+  const [productDescription, setProductDescription] = useState("");
+  const [productPrice, setProductPrice] = useState("");
+  const [productImage, setProductImage] = useState(null);
+  const [previewImage, setPreviewImage] = useState("");
 
-  const formData = new FormData();
-  formData.append('name', document.getElementById('productName').value);
-  formData.append('description', document.getElementById('productDescription').value);
-  formData.append('price', document.getElementById('productPrice').value);
-  formData.append('itemCount', editProduct?.itemCount);
-  console.log( loggedInUser,"logged")
-  formData.append('userId', loggedInUser?.id || 1234); 
-  console.log(loggedInUser)
+  useEffect(() => {
+    if (isedit === "edit" && editProduct) {
+      setProductName(editProduct.name || "");
+      setProductDescription(editProduct.description || "");
+      setProductPrice(editProduct.price || "");
+      setPreviewImage(editProduct.image || "");
+    } else {
+      resetForm();
+    }
+  }, [editProduct, isedit]);
 
+  const resetForm = () => {
+    setProductName("");
+    setProductDescription("");
+    setProductPrice("");
+    setProductImage(null);
+    setPreviewImage("");
+  };
 
-  
-  setLoading(true);
+  const handleImageChange = (e) => {
+    const file = e.target.files[0];
 
-  const fileInput = document.getElementById('productImage');
-  if (fileInput.files[0]) {
-    formData.append('image', fileInput.files[0]);
-  }
+    if (file) {
+      setProductImage(file);
+      setPreviewImage(URL.createObjectURL(file));
+    }
+  };
 
-  if (isedit === "create") {
-    // POST request (Uses FormData for the image)
-    fetch('/api', {
-      method: 'POST',
-      body: formData,
-    })
-      .then((response) => response.json())
-      .then(async (data) => {
-       await  fetchProducts();
-        resetForm();
-        setLoading(false)
-      })
-      .catch((error) => console.error('Error adding product:', error));
+  const handleAddProduct = async () => {
+    try {
+      setLoading(true);
 
-  } else {
-    // PUT request (Existing logic updated to send FormData if you want to update images)
-    // If you prefer keeping your JSON logic for PUT, stick to your original code
-    fetch(`/api/${editProduct._id}`, {
-      method: 'PUT',
-      body: formData, 
-    })
-      .then((response) => response.json())
-      .then( async (data) => {
-        await fetchProducts();
-        setLoading(false)
-      })
-      .catch((error) => console.error('Error updating product:', error));
-  }
-  handleClose();
+      const loggedInUser = getDecryptedItem("user");
 
-};
+      const formData = new FormData();
 
-const resetForm = () => {
-  setProductName('');
-  setProductDescription('');
-  setProductPrice('');
-  setProductImage('');
-};
+      formData.append("name", productName);
+      formData.append("description", productDescription);
+      formData.append("price", productPrice);
+      formData.append(
+        "itemCount",
+        editProduct?.itemCount || 1
+      );
+      formData.append(
+        "userId",
+        loggedInUser?.id || "1234"
+      );
 
+      if (productImage) {
+        formData.append("image", productImage);
+      }
+
+      let response;
+
+      if (isedit === "create") {
+        response = await fetch("/api", {
+          method: "POST",
+          body: formData,
+        });
+      } else {
+        response = await fetch(`/api/${editProduct._id}`, {
+          method: "PUT",
+          body: formData,
+        });
+      }
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || "Something went wrong");
+      }
+
+      await fetchProducts();
+
+      resetForm();
+      handleClose();
+    } catch (error) {
+      console.log(error);
+      alert(error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
-    <>
+    <Modal
+      show={show}
+      onHide={handleClose}
+      backdrop="static"
+      keyboard={false}
+    >
+      <Modal.Header closeButton>
+        <Modal.Title className="p-3">
+          {isedit === "edit"
+            ? "Edit Product"
+            : "Add New Product"}
+        </Modal.Title>
+      </Modal.Header>
 
+      <Modal.Body>
+        <form className="w-full max-w-lg p-3">
+          <div className="mb-3">
+            <label className="form-label">
+              Product Name
+            </label>
+            <input
+              type="text"
+              className="form-control"
+              value={productName}
+              onChange={(e) =>
+                setProductName(e.target.value)
+              }
+            />
+          </div>
 
-      <Modal
-        show={show}
-        onHide={handleClose}
-        backdrop="static"
-        keyboard={false}
-      >
-        <Modal.Header closeButton>
-          <Modal.Title className="p-3">{editProduct ? 'Edit Product' : 'Add New Product'}</Modal.Title>
-        </Modal.Header>
-        <Modal.Body>
-          <form className="w-full max-w-lg p-3">
-            <div className="mb-3">
-              <label htmlFor="productName" className="form-label">Product Name:</label>
-              <input type="text" className="form-control" id="productName" onChange={(e) => isedit == "edit" ? setEditProduct({ ...editProduct, name: e.target.value }) : setProductName(e.target.value)} placeholder="Enter product name" value={isedit === "edit" ? editProduct.name : productName} />
+          <div className="mb-3">
+            <label className="form-label">
+              Product Description
+            </label>
+            <textarea
+              rows="3"
+              className="form-control"
+              value={productDescription}
+              onChange={(e) =>
+                setProductDescription(
+                  e.target.value
+                )
+              }
+            />
+          </div>
+
+          <div className="mb-3">
+            <label className="form-label">
+              Product Price
+            </label>
+            <input
+              type="number"
+              className="form-control"
+              value={productPrice}
+              onChange={(e) =>
+                setProductPrice(e.target.value)
+              }
+            />
+          </div>
+
+          <div className="mb-3">
+            <label className="form-label">
+              Product Image
+            </label>
+
+            <div className="d-flex gap-3 align-items-center">
+              <input
+                type="file"
+                className="form-control"
+                accept="image/*"
+                onChange={handleImageChange}
+              />
+
+              {previewImage && (
+                <img
+                  src={previewImage}
+                  alt="preview"
+                  width={50}
+                  height={50}
+                  style={{
+                    objectFit: "cover",
+                    borderRadius: "6px",
+                  }}
+                />
+              )}
             </div>
-            <div className="mb-3">
-              <label htmlFor="productDescription" className="form-label">Product Description:</label>
-              <textarea className="form-control" id="productDescription" rows="3" onChange={(e) => isedit == "edit" ? setEditProduct({ ...editProduct, description: e.target.value }) : setProductDescription(e.target.value)} placeholder="Enter product description" value={isedit === "edit" ? editProduct.description : productDescription}></textarea>
-            </div>
-            <div className="mb-3">
-              <label htmlFor="productPrice" className="form-label">Product Price:</label>
-              <input type="number" className="form-control" id="productPrice" onChange={(e) => isedit == "edit" ? setEditProduct({ ...editProduct, price: e.target.value }) : setProductPrice(e.target.value)} placeholder="Enter product price" value={isedit === "edit" ? editProduct.price : productPrice} />
-            </div>
-            <div className="mb-3">
-              <label htmlFor="productImage" className="form-label">{isedit !== "create" ?"Update Product Image" : "Product Image URL:"}</label>
-              <div className='flex gap-3'>
-              <input type="file" className="form-control" id="productImage" onChange={(e) => isedit == "edit" ? setEditProduct({ ...editProduct, image: URL.createObjectURL(e.target.files[0]) }) : setProductImage(URL.createObjectURL(e.target.files[0]))} placeholder="Enter product image URL" />
-              <img src={editProduct?.image} width={40} height={40}/>
-              </div>
-              
-         
-            </div>
-            
-          </form>
-        </Modal.Body>
-        <Modal.Footer className="flex justify-content-between gap-2">
-          <Button variant="secondary" onClick={handleClose}>
-            Clear
-          </Button>
-          <Button variant="primary" onClick={handleAddProduct}>{isedit === "edit" ? "Update Product" : "Add Product"}</Button>
-        </Modal.Footer>
-      </Modal>
-    </>
+          </div>
+        </form>
+      </Modal.Body>
+
+      <Modal.Footer className="d-flex justify-content-between">
+        <Button
+          variant="secondary"
+          onClick={() => {
+            resetForm();
+            handleClose();
+          }}
+        >
+          Clear
+        </Button>
+
+        <Button
+          variant="primary"
+          onClick={handleAddProduct}
+        >
+          {isedit === "edit"
+            ? "Update Product"
+            : "Add Product"}
+        </Button>
+      </Modal.Footer>
+    </Modal>
   );
 }
