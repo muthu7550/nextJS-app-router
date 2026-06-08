@@ -334,7 +334,7 @@ export default function Dashboard() {
   const [editProduct, setEditProduct] = React.useState(null);
   const addItem = useCounterStore((state) => state.addItem)
   const removeItem = useCounterStore((state) => state.removeItem)
-
+  const pathname = usePathname();
   const items = useCounterStore((state) => state.items)
   const router = useRouter();
   
@@ -387,7 +387,7 @@ export default function Dashboard() {
   return (
     <>
       <div className="min-h-screen bg-gradient-to-br from-slate-100 via-blue-50 to-indigo-100 p-8 flex flex-col gap-4">
-       {user === 'Admin' && <div className="flex flex-col gap-5 rounded-[35px] border border-white/20 bg-white/60 p-4 shadow-2xl backdrop-blur-xl md:flex-row md:items-center md:justify-between">
+       {pathname === '/admin/dashboard' && <div className="flex flex-col gap-5 rounded-[35px] border border-white/20 bg-white/60 p-4 shadow-2xl backdrop-blur-xl md:flex-row md:items-center md:justify-between">
           <div>
             <h1 className="text-xl font-extrabold tracking-tight text-gray-800">
               Product Dashboard
