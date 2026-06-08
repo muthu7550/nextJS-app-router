@@ -71,7 +71,7 @@ export async function POST(request: NextRequest) {
     //   throw new Error("JWT_SECRET is not defined");
     // }
 
-    const secret = new TextEncoder().encode("xyzhskiepdkdjkapolahiue");
+    const secret = new TextEncoder().encode("your_super_secret_random_string_here_at_least_32_characters");
 
     // 7. CREATE TOKEN
     console.log("Creating JWT...");
@@ -104,7 +104,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(
       {
-        error: error?.message || "Internal Server Errorrr",
+        error: error?.message || "Internal Server Error",
       },
       { status: 500 }
     );
