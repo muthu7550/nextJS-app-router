@@ -106,7 +106,7 @@ const resetForm = () => {
             <div className="mb-3">
               <label htmlFor="productImage" className="form-label">{isedit !== "create" ?"Update Product Image" : "Product Image URL:"}</label>
               <div className='flex gap-3'>
-              <input type="file" className="form-control" id="productImage" onChange={(e) => isedit == "edit" ? setEditProduct({ ...editProduct, image: URL.createObjectURL(e.target.files[0]) }) : setProductImage(URL.createObjectURL(e.target.files[0]))} placeholder="Enter product image URL" />
+              <input type="file" className="form-control"  disabled id="productImage" onChange={(e) => isedit == "edit" ? setEditProduct({ ...editProduct, image: URL.createObjectURL(e.target.files[0]) }) : setProductImage(URL.createObjectURL(e.target.files[0]))} placeholder="Enter product image URL" />
               <img src={editProduct?.image} width={40} height={40}/>
               </div>
               
