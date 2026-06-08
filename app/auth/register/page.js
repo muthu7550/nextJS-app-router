@@ -31,7 +31,7 @@ export default function Register() {
   function handleSubmit(){
   console.log(user)
 
-fetch('/api/login', {
+fetch('/api/register', {
   method: 'POST',
   headers: {
     'Content-Type': 'application/json',
@@ -39,7 +39,8 @@ fetch('/api/login', {
   body: JSON.stringify(user),
 })
   .then((res) => res.json())
-  .then(() => {
+  .then((data) => {
+    alert("Success.")
      router.push('/auth/login')
 }
 
