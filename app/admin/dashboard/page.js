@@ -20,7 +20,7 @@ import { getDecryptedItem } from '../../auth/encript.js'
 const imageurl =
   "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/";
 
-export function ProductCard({
+ function ProductCard({
   product,
   fetchProducts,
   setShow,
