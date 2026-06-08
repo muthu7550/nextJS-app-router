@@ -25,12 +25,16 @@ export default function PaymentPage() {
     0
   )
 
+  function handleClick(){
+
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white py-10">
       <div className="mx-auto max-w-7xl px-4">
         {/* HEADER */}
         <div className="mb-8 flex items-center justify-between">
-          <button className="flex items-center gap-2 rounded-2xl bg-white px-5 py-3 font-medium text-gray-700 shadow-md transition hover:shadow-lg">
+          <button className="flex items-center gap-2 rounded-2xl bg-white px-5 py-3 font-medium text-gray-700 shadow-md transition hover:shadow-lg" onClick={handleClick}>
             <ArrowLeft className="h-5 w-5" />
             Back
           </button>

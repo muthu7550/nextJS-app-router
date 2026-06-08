@@ -192,7 +192,7 @@ const imageurl =
       {/* Image Section */}
       <div className="relative overflow-hidden">
         <img
-          src={imageURL}
+          src={product?.image??imageURL}
           alt={imageURL}
           className="h-72 w-full object-cover transition duration-700 group-hover:scale-110"
         />
@@ -352,10 +352,10 @@ export default function Dashboard() {
       const data = dataJson.filter((data) => {
         return data.userId === userName.id
       })
-      console.log(data)
+      console.log(data,"match")
 
 
-      setProducts(user === "Admin" ? data : dataJson);
+      setProducts(pathname === "/admin/dashboard" ? data : dataJson);
       setLoading(false);
     } catch (error) {
       console.error("Error fetching products:", error);
