@@ -3,6 +3,7 @@ import dbConnect from "../../lib/db";
 import Users from "../../model/user";
 import path from "path";
 import fs from "fs/promises";
+import cloudinary from "../../lib/cloudinary";
 
 // ======================
 // GET USER
@@ -44,6 +45,8 @@ export async function GET(
 // ======================
 // UPDATE USER
 // ======================
+
+
 export async function PUT(
   request: NextRequest,
   { params }: { params: { id: string } }
@@ -73,24 +76,33 @@ export async function PUT(
 
     let imagePath = (existingImage as string) || "";
 
-    // ⚠️ VERCEL ISSUE: filesystem is NOT persistent
+    // ✅ CLOUDINARY UPLOAD (instead of local storage)
     if (file && file.size > 0) {
-      console.log("File received:", file.name);
+      console.log("New image received:", file.name);
 
-      const buffer = Buffer.from(await file.arrayBuffer());
+      const bytes = await file.arrayBuffer();
+      const buffer = Buffer.from(bytes);
 
-      const filename =
-        Date.now() + "_" + file.name.replace(/\s+/g, "_");
+      const result: any = await new Promise((resolve, reject) => {
+        cloudinary.uploader
+          .upload_stream(
+            {
+              folder: "products",
+            },
+            (error, result) => {
+              if (error) {
+                reject(error);
+              } else {
+                resolve(result);
+              }
+            }
+          )
+          .end(buffer);
+      });
 
-      const uploadDir = path.join(process.cwd(), "public", "uploads");
+      imagePath = result.secure_url;
 
-      await fs.mkdir(uploadDir, { recursive: true });
-
-      await fs.writeFile(path.join(uploadDir, filename), buffer);
-
-      imagePath = `/uploads/${filename}`;
-
-      console.log("File saved:", imagePath);
+      console.log("Cloudinary image URL:", imagePath);
     }
 
     const updatedUser = await Users.findByIdAndUpdate(
@@ -119,10 +131,12 @@ export async function PUT(
       data: updatedUser,
     });
   } catch (error: any) {
-    console.error("PUT Error:", error?.message, error?.stack);
+    console.error("PUT Error:", error?.message);
 
     return NextResponse.json(
-      { error: error?.message || "Failed to update user" },
+      {
+        error: error?.message || "Failed to update user",
+      },
       { status: 500 }
     );
   }
