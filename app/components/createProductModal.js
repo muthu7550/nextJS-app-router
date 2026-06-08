@@ -24,7 +24,7 @@ const handleAddProduct = () => {
   formData.append('price', document.getElementById('productPrice').value);
   formData.append('itemCount', editProduct?.itemCount);
   console.log( loggedInUser,"logged")
-  formData.append('userId', loggedInUser.id || 1234); 
+  formData.append('userId', loggedInUser?.id || 1234); 
   console.log(loggedInUser)
 
 
@@ -38,7 +38,7 @@ const handleAddProduct = () => {
 
   if (isedit === "create") {
     // POST request (Uses FormData for the image)
-    fetch('http://localhost:3000/api', {
+    fetch('/api', {
       method: 'POST',
       body: formData,
     })
@@ -53,7 +53,7 @@ const handleAddProduct = () => {
   } else {
     // PUT request (Existing logic updated to send FormData if you want to update images)
     // If you prefer keeping your JSON logic for PUT, stick to your original code
-    fetch(`http://localhost:3000/api/${editProduct._id}`, {
+    fetch(`/api/${editProduct._id}`, {
       method: 'PUT',
       body: formData, 
     })

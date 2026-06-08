@@ -33,25 +33,25 @@ export default function Login() {
     setIsLoading(true);
 
     try {
-      // const response = await fetch("/api/login", {
-      //   method: "POST",
-      //   headers: {
-      //     "Content-Type": "application/json",
-      //   },
-      //   body: JSON.stringify({
-      //     email,
-      //     password,
-      //   }),
-      // });
+      const response = await fetch("/api/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          email,
+          password,
+        }),
+      });
 
-      // const data = await response.json();
+      const data = await response.json();
 
-      // if (!response.ok) {
-      //   throw new Error(data.error || "Login failed");
-      // }
+      if (!response.ok) {
+        throw new Error(data.error || "Login failed");
+      }
 
-      // setEncryptedItem("token", data.token);
-      // setEncryptedItem("user", data.user);
+      setEncryptedItem("token", data.token);
+      setEncryptedItem("user", data.user);
 
       // Remove login page from history
       router.replace("/admin/dashboard");
