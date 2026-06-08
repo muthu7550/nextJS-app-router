@@ -76,7 +76,7 @@ const imageurl =
   };
 
   const handleViewDetails = () => {
-    router.push(`/admin/dashboard/product/${product._id}`);
+    router.push(`/admin/dashboard/products/${product._id}`);
   };
 
 
@@ -498,7 +498,7 @@ export default function Dashboard() {
       </div>
       {/* <button type="button" class="text-heading bg-gradient-to-r from-red-200 via-red-300 to-yellow-200 hover:bg-gradient-to-bl focus:ring-4 focus:outline-none checkout-btn focus:ring-red-100 dark:focus:ring-red-400 font-medium rounded-base text-sm px-4 py-2.5 text-center leading-5">Checkout</button> */}
 
-      {(items.length > 0 && user === "user") &&
+      {(items.length > 0 && pathname === '/admin/dashboard/products') &&
         <button
           type="button"
           onClick={handlecheckout}

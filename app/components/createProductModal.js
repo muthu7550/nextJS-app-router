@@ -19,6 +19,8 @@ export default function CreateProductModal({
   const [productPrice, setProductPrice] = useState("");
   const [productImage, setProductImage] = useState(null);
   const [previewImage, setPreviewImage] = useState("");
+  const [disable, setIsDisable] = useState(false);
+
 
   useEffect(() => {
     if (isedit === "edit" && editProduct) {
@@ -29,7 +31,31 @@ export default function CreateProductModal({
     } else {
       resetForm();
     }
+
   }, [editProduct, isedit]);
+  
+useEffect(() => {
+
+  const isFormSame =
+    editProduct?.name === productName &&
+    editProduct?.description === productDescription &&
+    editProduct?.price === productPrice &&
+    editProduct?.image === previewImage;
+
+  const isEmpty =
+    !productName ||
+    !productDescription ||
+    !productPrice ||
+    (!productImage && !previewImage);
+
+  setIsDisable(isEmpty || isFormSame);
+}, [
+  productName,
+  productDescription,
+  productPrice,
+  productImage,
+  previewImage,
+]);
 
   const resetForm = () => {
     setProductName("");
@@ -71,7 +97,8 @@ export default function CreateProductModal({
       if (productImage) {
         formData.append("image", productImage);
       }
-
+      handleClose();
+        
       let response;
 
       if (isedit === "create") {
@@ -92,10 +119,9 @@ export default function CreateProductModal({
         throw new Error(data.message || "Something went wrong");
       }
 
+      resetForm();
       await fetchProducts();
 
-      resetForm();
-      handleClose();
     } catch (error) {
       console.log(error);
       alert(error.message);
@@ -209,6 +235,7 @@ export default function CreateProductModal({
         <Button
           variant="primary"
           onClick={handleAddProduct}
+          disabled={disable}
         >
           {isedit === "edit"
             ? "Update Product"
