@@ -85,7 +85,7 @@ export default function DetailsPage() {
       formData.append("image", product.image);
     }
 
-    fetch(`http://localhost:3000/api/${product._id}`, {
+    fetch(`api/${product._id}`, {
       method: "PUT",
       // IMPORTANT: Do NOT add 'Content-Type' header for FormData
       body: formData,
@@ -176,7 +176,7 @@ export default function DetailsPage() {
                 ${productDetails?.price}
               </div>
 {}
-              {productDetails.itemCount == 0 && (
+              {productDetails?.itemCount == 0 && (
                 <button
                   className="flex w-full rounded-2xl bg-gradient-to-r justify-center from-cyan-500 to-blue-600 py-2 rounded text-sm font-bold text-white shadow-lg shadow-cyan-500/30 transition-all duration-300 hover:scale-105 hover:shadow-cyan-500/50"
                   onClick={() => handleCountIncrease(productDetails)}
