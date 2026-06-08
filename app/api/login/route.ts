@@ -97,7 +97,7 @@ export async function POST(request: NextRequest) {
       },
     });
   } catch (error: any) {
-    console.error("========== LOGIN ERROR ==========");
+    console.error("========== LOGIN ERROR =========="); 
     console.error("Message:", error?.message);
     console.error("Stack:", error?.stack);
     console.error("Full Error:", error);
