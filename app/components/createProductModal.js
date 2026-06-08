@@ -33,10 +33,8 @@ const handleAddProduct = () => {
 
   const fileInput = document.getElementById('productImage');
   if (fileInput.files[0]) {
-    // formData.append('image', fileInput.files[0]);
-    
+    formData.append('image', fileInput.files[0]);
   }
-  formData.append('image', "https://www.google.com/imgres?q=electronic%20items&imgurl=https%3A%2F%2F3.imimg.com%2Fdata3%2FTB%2FKQ%2FMY-238885%2Fvideocon-ha-500x500.jpg&imgrefurl=https%3A%2F%2Fwww.indiamart.com%2Fproddetail%2Fconsumer-electronics-and-home-appliances-9836798897.html%3Fsrsltid%3DAfmBOoo4YkEm6Y-RDAbWmMqhPEUlLOKoBxpezqyDyRV_vpSd0qmmuHW_&docid=G1vvEjH9kG9U2M&tbnid=RQVDaK42999ehM&vet=12ahUKEwi0w6KNl_eUAxVrUGwGHRxDGWYQnPAOegQIGRAB..i&w=500&h=250&hcb=2&ved=2ahUKEwi0w6KNl_eUAxVrUGwGHRxDGWYQnPAOegQIGRAB");
 
   if (isedit === "create") {
     // POST request (Uses FormData for the image)
