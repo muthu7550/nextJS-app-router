@@ -15,7 +15,7 @@ import {
 } from "@coreui/react";
 import Button from "react-bootstrap/Button";
 import { getDecryptedItem } from '../../auth/encript.js'
-
+import { usePathname } from "next/navigation";
 
 const imageurl =
   "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/";
@@ -40,6 +40,7 @@ const imageurl =
   const [user, setUser] = useState({})
     const imageURL = "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQdJKDO44DuYRj3cC-KtQ7_T1vr2pmC6HSmlA&s"
 
+ const pathname = usePathname();
 
   const handleMove = (e) => {
     const { left, top, width, height } =
@@ -205,7 +206,7 @@ const imageurl =
         </div>
 
         {
-          userAccess === 'Admin' && <div className="absolute right-5 top-5 flex gap-3">
+          pathname  === '/admin/dashboard' && <div className="absolute right-5 top-5 flex gap-3">
             <button
               onClick={handleEdit}
               className="flex h-12 w-12 items-center rounded-2 justify-center rounded-full border border-white/20 bg-black/40 text-white backdrop-blur-lg transition-all duration-300 hover:scale-110 hover:bg-cyan-500"
@@ -270,7 +271,7 @@ const imageurl =
           >
             View Details
           </button>
-          {userAccess === 'user' && (
+          {pathname  === '/admin/dashboard/products' && (
             <>
               {product.itemCount == 0 && <button className="flex w-full rounded-2xl bg-gradient-to-r justify-center from-cyan-500 to-blue-600 py-2 rounded text-sm font-bold text-white shadow-lg shadow-cyan-500/30 transition-all duration-300 hover:scale-105 hover:shadow-cyan-500/50" onClick={() => handleCountIncrease(product)} >
                 {!loading ? <span>Add to Cart</span> :
@@ -322,7 +323,9 @@ const imageurl =
 
 export default function Dashboard() {
 
-   const user = "Admin";
+   const user = getDecryptedItem("user") || "admin"
+
+   console.log(user,"userr")
 
   const [products, setProducts] = React.useState([]);
   const [loading, setLoading] = React.useState(true);
@@ -334,7 +337,7 @@ export default function Dashboard() {
 
   const items = useCounterStore((state) => state.items)
   const router = useRouter();
-
+  
 
   const fetchProducts = async () => {
     try {

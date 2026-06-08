@@ -101,7 +101,7 @@ const resetForm = () => {
             </div>
             <div className="mb-3">
               <label htmlFor="productPrice" className="form-label">Product Price:</label>
-              <input type="text" className="form-control" id="productPrice" onChange={(e) => isedit == "edit" ? setEditProduct({ ...editProduct, price: e.target.value }) : setProductPrice(e.target.value)} placeholder="Enter product price" value={isedit === "edit" ? editProduct.price : productPrice} />
+              <input type="number" className="form-control" id="productPrice" onChange={(e) => isedit == "edit" ? setEditProduct({ ...editProduct, price: e.target.value }) : setProductPrice(e.target.value)} placeholder="Enter product price" value={isedit === "edit" ? editProduct.price : productPrice} />
             </div>
             <div className="mb-3">
               <label htmlFor="productImage" className="form-label">{isedit !== "create" ?"Update Product Image" : "Product Image URL:"}</label>
