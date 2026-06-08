@@ -1,10 +1,34 @@
 "use client"
 import Link from "next/link";
 import { usePathname } from 'next/navigation';
+import { setEncryptedItem, getDecryptedItem } from "./encript";
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 
 
 export default function layout ({ children }) {
+    const router = useRouter();
         const pathname = usePathname();
+          const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const token = getDecryptedItem("token");
+
+    if (token) {
+      router.replace("/admin/dashboard");
+    } else {
+      setIsLoading(false);  
+    }
+  }, [router]);
+
+    // Prevent login form flash
+  if (isLoading) {
+    return (
+      <div className="w-xl mt-10 mx-auto text-center">
+        Loading...
+      </div>
+    );
+  }
 
     return (
         <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100">
