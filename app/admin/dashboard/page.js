@@ -319,7 +319,10 @@ const imageurl =
   );
 }
 
-export default function Dashboard({ user = "Admin" }) {
+export default function Dashboard() {
+
+   const user = "Admin";
+
   const [products, setProducts] = React.useState([]);
   const [loading, setLoading] = React.useState(true);
   const [show, setShow] = React.useState(false);
