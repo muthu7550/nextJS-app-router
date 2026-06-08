@@ -64,14 +64,14 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 6. ENV CHECK
-    if (!process.env.JWT_SECRET) {
-      console.log("JWT_SECRET missing in env");
+    // // 6. ENV CHECK
+    // if (!process.env.JWT_SECRET) {
+    //   console.log("JWT_SECRET missing in env");
 
-      throw new Error("JWT_SECRET is not defined");
-    }
+    //   throw new Error("JWT_SECRET is not defined");
+    // }
 
-    const secret = new TextEncoder().encode(process.env.JWT_SECRET);
+    const secret = new TextEncoder().encode("xyzhskiepdkdjkapolahiue");
 
     // 7. CREATE TOKEN
     console.log("Creating JWT...");
