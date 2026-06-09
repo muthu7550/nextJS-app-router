@@ -19,6 +19,7 @@ import { usePathname } from "next/navigation";
 import FilterDrawer from "../../components/FilterDrawer.jsx";
 import ProductPagination from "../../components/Pagination.jsx";
 import { useSearchParams } from "next/navigation";
+import { Suspense } from "react";
 
 const imageurl = "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/";
 
@@ -466,6 +467,7 @@ const fetchProducts = async (pageNumber = 1, limit = 4) => {
   //  throw new Error("Triggering global error boundary");
 
   return (
+     <Suspense fallback={<div>Loading...</div>}>
     <>
       <div className="min-h-screen bg-gradient-to-br from-slate-100 via-blue-50 to-indigo-100 p-8 flex flex-col gap-4">
         {pathname === "/admin/dashboard" && (
@@ -652,6 +654,7 @@ const fetchProducts = async (pageNumber = 1, limit = 4) => {
         setLoading={setLoading}
       />
     </>
+      </Suspense>
   );
 }
 
