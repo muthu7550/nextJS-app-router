@@ -18,8 +18,8 @@ import { getDecryptedItem } from "../../auth/encript.js";
 import { usePathname } from "next/navigation";
 import FilterDrawer from "../../components/FilterDrawer.jsx";
 import ProductPagination from "../../components/Pagination.jsx";
-import { useSearchParams } from "next/navigation";
 import { Suspense } from "react";
+import {usePaginationParams} from "../../components/useSearchParams"
 
 const imageurl = "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/";
 
@@ -374,10 +374,8 @@ export default function Dashboard() {
   const items = useCounterStore((state) => state.items);
   const router = useRouter();
   const [page, setPage] = useState(1);
-  const searchParams = useSearchParams();
 
-  const pageNumber = searchParams.get("page");
-  const limit = searchParams.get("limit");
+ const { pageNumber, limit } = usePaginationParams();
   
 
 
