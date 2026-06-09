@@ -54,7 +54,7 @@ export default function Login() {
       setEncryptedItem("user", data.user);
 
       // Remove login page from history
-      router.replace("/admin/dashboard");
+      router.replace("/admin/dashboard?page=1&limit=8");
 
       // No setIsLoading(false) here
       return;

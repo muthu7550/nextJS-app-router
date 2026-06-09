@@ -2,8 +2,8 @@
 
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import CreateProductModal from "../../components/createProductModal";
-import { useCounterStore } from '../../stores/useCounterStore.ts'
+import CreateProductModal from "../../components/createProductModal.js";
+import { useCounterStore } from "../../stores/useCounterStore.ts";
 import {
   CButton,
   CCard,
@@ -14,13 +14,15 @@ import {
   CPlaceholder,
 } from "@coreui/react";
 import Button from "react-bootstrap/Button";
-import { getDecryptedItem } from '../../auth/encript.js'
+import { getDecryptedItem } from "../../auth/encript.js";
 import { usePathname } from "next/navigation";
+import FilterDrawer from "../../components/FilterDrawer.jsx";
+import ProductPagination from "../../components/Pagination.jsx";
+import { useSearchParams } from "next/navigation";
 
-const imageurl =
-  "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/";
+const imageurl = "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/";
 
- function ProductCard({
+function ProductCard({
   product,
   fetchProducts,
   setShow,
@@ -29,18 +31,21 @@ const imageurl =
   addItem,
   removeItem,
   setLoading: layoutLoading,
-  user: userAccess = "Admin"
+  user: userAccess = "Admin",
 }) {
   const router = useRouter();
   const [tilt, setTilt] = React.useState({ x: 0, y: 0 });
   const [cartCount, setCartCount] = React.useState(0);
-  const [loading, setLoading] = React.useState(false)
-  const items = useCounterStore((state) => state.items)
+  const [loading, setLoading] = React.useState(false);
+  const items = useCounterStore((state) => state.items);
   const threshold = 12;
-  const [user, setUser] = useState({})
-    const imageURL = "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQdJKDO44DuYRj3cC-KtQ7_T1vr2pmC6HSmlA&s"
+  const [user, setUser] = useState({});
+  const imageURL =
+    "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQdJKDO44DuYRj3cC-KtQ7_T1vr2pmC6HSmlA&s";
 
- const pathname = usePathname();
+  const pathname = usePathname();
+
+      console.log("pathname", pathname.toString())
 
   const handleMove = (e) => {
     const { left, top, width, height } =
@@ -54,6 +59,12 @@ const imageurl =
       y: x * threshold,
     });
   };
+    const searchParams = useSearchParams();
+
+    console.log("searchParams", searchParams.toString())
+
+  const pageNumber = searchParams.get("page");
+  const limit = searchParams.get("limit");
 
   const handleEdit = () => {
     setEditProduct(product);
@@ -62,14 +73,14 @@ const imageurl =
   };
 
   const handleDelete = async () => {
-    layoutLoading(true)
+    layoutLoading(true);
     try {
       await fetch(`/api/${product._id}`, {
         method: "DELETE",
       });
 
-      await fetchProducts();
-      layoutLoading(false)
+      await fetchProducts(pageNumber,limit);
+      layoutLoading(false);
     } catch (error) {
       console.error("Error deleting product:", error);
     }
@@ -79,85 +90,76 @@ const imageurl =
     router.push(`/admin/dashboard/products/${product._id}`);
   };
 
-
   const handleCountIncrease = (product) => {
     const newCount = (product.itemCount || 0) + 1;
     const formData = new FormData();
-    formData.append('name', product.name);
-    formData.append('description', product.description);
-    formData.append('price', product.price);
-    formData.append('itemCount', newCount);
-    
+    formData.append("name", product.name);
+    formData.append("description", product.description);
+    formData.append("price", product.price);
+    formData.append("itemCount", newCount);
+
     // IMPORTANT
-    formData.append('existingImage', product.image);
+    formData.append("existingImage", product.image);
 
     // Append new image only if user selected one
     if (product.image instanceof File || product.image instanceof Blob) {
-      formData.append('image', product.image);
+      formData.append("image", product.image);
     }
 
     fetch(`/api/${product._id}`, {
-      method: 'PUT',
+      method: "PUT",
       body: formData,
     })
       .then((response) => {
         if (!response.ok) {
-          throw new Error('Network response was not ok');
+          throw new Error("Network response was not ok");
         }
         return response.json();
       })
       .then(async (data) => {
-        console.log('Success:', data.data);
+        console.log("Success:", data.data);
 
         addItem(data.data);
 
-        await fetchProducts();
+        await fetchProducts(pageNumber,limit);
       })
-      .catch((error) =>
-        console.error('Error updating product:', error)
-      );
+      .catch((error) => console.error("Error updating product:", error));
   };
-
-
 
   const handleCountDecrease = (product) => {
     const newCount = (product.itemCount || 0) - 1;
 
     const formData = new FormData();
-    formData.append('name', product.name);
-    formData.append('description', product.description);
-    formData.append('price', product.price);
-    formData.append('itemCount', newCount);
-
+    formData.append("name", product.name);
+    formData.append("description", product.description);
+    formData.append("price", product.price);
+    formData.append("itemCount", newCount);
 
     // IMPORTANT
-    formData.append('existingImage', product.image);
+    formData.append("existingImage", product.image);
 
     // Append new image only if user selected one
     if (product.image instanceof File || product.image instanceof Blob) {
-      formData.append('image', product.image);
+      formData.append("image", product.image);
     }
 
-
-
     fetch(`/api/${product._id}`, {
-      method: 'PUT',
+      method: "PUT",
       // IMPORTANT: Do NOT add 'Content-Type' header for FormData
-      body: formData
+      body: formData,
     })
       .then((response) => {
-        if (!response.ok) throw new Error('Network response was not ok');
+        if (!response.ok) throw new Error("Network response was not ok");
         return response.json();
       })
       .then(async (data) => {
-        console.log(data.data._id, "data.data._id")
-        let res = removeItem(data.data._id)
-        console.log(res)
-        await fetchProducts();
+        console.log(data.data._id, "data.data._id");
+        let res = removeItem(data.data._id);
+        console.log(res);
+        await fetchProducts(pageNumber,limit);
       })
-      .catch((error) => console.error('Error updating product:', error));
-
-  }
+      .catch((error) => console.error("Error updating product:", error));
+  };
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -192,7 +194,7 @@ const imageurl =
       {/* Image Section */}
       <div className="relative overflow-hidden">
         <img
-          src={product?.image??imageURL}
+          src={product?.image ?? imageURL}
           alt={imageURL}
           className="h-72 w-full object-cover transition duration-700 group-hover:scale-110"
         />
@@ -205,8 +207,8 @@ const imageurl =
           ${product.price}
         </div>
 
-        {
-          pathname  === '/admin/dashboard' && <div className="absolute right-5 top-5 flex gap-3">
+        {pathname === "/admin/dashboard" && (
+          <div className="absolute right-5 top-5 flex gap-3">
             <button
               onClick={handleEdit}
               className="flex h-12 w-12 items-center rounded-2 justify-center rounded-full border border-white/20 bg-black/40 text-white backdrop-blur-lg transition-all duration-300 hover:scale-110 hover:bg-cyan-500"
@@ -221,7 +223,7 @@ const imageurl =
               🗑️
             </button>
           </div>
-        }
+        )}
 
         {/* Bottom Info Overlay */}
         <div className="absolute bottom-0 left-0 w-full p-5">
@@ -271,45 +273,78 @@ const imageurl =
           >
             View Details
           </button>
-          {pathname  === '/admin/dashboard/products' && (
+          {pathname === "/admin/dashboard/products" && (
             <>
-              {product.itemCount == 0 && <button className="flex w-full rounded-2xl bg-gradient-to-r justify-center from-cyan-500 to-blue-600 py-2 rounded text-sm font-bold text-white shadow-lg shadow-cyan-500/30 transition-all duration-300 hover:scale-105 hover:shadow-cyan-500/50" onClick={() => handleCountIncrease(product)} >
-                {!loading ? <span>Add to Cart</span> :
+              {product.itemCount == 0 && (
+                <button
+                  className="flex w-full rounded-2xl bg-gradient-to-r justify-center from-cyan-500 to-blue-600 py-2 rounded text-sm font-bold text-white shadow-lg shadow-cyan-500/30 transition-all duration-300 hover:scale-105 hover:shadow-cyan-500/50"
+                  onClick={() => handleCountIncrease(product)}
+                >
+                  {!loading ? (
+                    <span>Add to Cart</span>
+                  ) : (
+                    <div class="spinner-border" role="status">
+                      <span class="sr-only">Loading...</span>
+                    </div>
+                  )}
+                </button>
+              )}
 
-                  <div class="spinner-border" role="status">
-                    <span class="sr-only">Loading...</span>
-                  </div>}
-              </button>
-              }
+              {product.itemCount > 0 && (
+                <button className="flex items-center w-full justify-center gap-4 rounded-2xl bg-gradient-to-r from-cyan-500 to-blue-600 text-sm font-bold text-white shadow-lg shadow-cyan-500/30 transition-all duration-300 hover:scale-105 hover:shadow-cyan-500/50">
+                  {loading ? (
+                    <div class="spinner-border" role="status">
+                      <span class="sr-only">Loading...</span>
+                    </div>
+                  ) : (
+                    <>
+                      <span
+                        className="cursor-pointer p-1 hover:bg-white/20 rounded-full transition-colors"
+                        onClick={() => handleCountDecrease(product)}
+                      >
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          width="16"
+                          height="16"
+                          fill="currentColor"
+                          className="bi bi-dash-lg"
+                          viewBox="0 0 16 16"
+                        >
+                          <path
+                            fillRule="evenodd"
+                            d="M2 8a.5.5 0 0 1 .5-.5h11a.5.5 0 0 1 0 1h-11A.5.5 0 0 1 2 8"
+                          />
+                        </svg>
+                      </span>
 
-              {(product.itemCount > 0) && <button className="flex items-center w-full justify-center gap-4 rounded-2xl bg-gradient-to-r from-cyan-500 to-blue-600 text-sm font-bold text-white shadow-lg shadow-cyan-500/30 transition-all duration-300 hover:scale-105 hover:shadow-cyan-500/50">
-                {loading ?
-                  <div class="spinner-border" role="status">
-                    <span class="sr-only">Loading...</span>
-                  </div> :
-                  <>
-                    <span className="cursor-pointer p-1 hover:bg-white/20 rounded-full transition-colors" onClick={() => handleCountDecrease(product)}>
-                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" className="bi bi-dash-lg" viewBox="0 0 16 16">
-                        <path fillRule="evenodd" d="M2 8a.5.5 0 0 1 .5-.5h11a.5.5 0 0 1 0 1h-11A.5.5 0 0 1 2 8" />
-                      </svg>
-                    </span>
+                      <h5 className="text-base select-none">
+                        {product.itemCount}
+                      </h5>
 
-                    <h5 className="text-base select-none">{product.itemCount}</h5>
-
-                    <span className="cursor-pointer p-1 hover:bg-white/20 rounded-full transition-colors" onClick={() => handleCountIncrease(product)}>
-                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" className="bi bi-plus-lg" viewBox="0 0 16 16">
-                        <path fillRule="evenodd" d="M8 2a.5.5 0 0 1 .5.5v5h5a.5.5 0 0 1 0 1h-5v5a.5.5 0 0 1-1 0v-5h-5a.5.5 0 0 1 0-1h5v-5A.5.5 0 0 1 8 2" />
-                      </svg>
-                    </span>
-                  </>
-                }
-              </button>
-              }
+                      <span
+                        className="cursor-pointer p-1 hover:bg-white/20 rounded-full transition-colors"
+                        onClick={() => handleCountIncrease(product)}
+                      >
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          width="16"
+                          height="16"
+                          fill="currentColor"
+                          className="bi bi-plus-lg"
+                          viewBox="0 0 16 16"
+                        >
+                          <path
+                            fillRule="evenodd"
+                            d="M8 2a.5.5 0 0 1 .5.5v5h5a.5.5 0 0 1 0 1h-5v5a.5.5 0 0 1-1 0v-5h-5a.5.5 0 0 1 0-1h5v-5A.5.5 0 0 1 8 2"
+                          />
+                        </svg>
+                      </span>
+                    </>
+                  )}
+                </button>
+              )}
             </>
-          )
-          }
-
-
+          )}
         </div>
       </div>
 
@@ -322,50 +357,83 @@ const imageurl =
 }
 
 export default function Dashboard() {
+  const user = getDecryptedItem("token") || "admin";
 
-   const user = getDecryptedItem("user") || "admin"
-
-   console.log(user,"userr")
+  console.log(user, "userr");
 
   const [products, setProducts] = React.useState([]);
+  const [filteredProducts, setFilteredProducts] = React.useState([]);
+  const [totalPage, setToalPage] = React.useState([]);
   const [loading, setLoading] = React.useState(true);
   const [show, setShow] = React.useState(false);
+  const [filterDrawerShow, setFilterDrawerShow] = React.useState(false);
+
   const [isEdit, seIsEdit] = React.useState("");
   const [editProduct, setEditProduct] = React.useState(null);
-  const addItem = useCounterStore((state) => state.addItem)
-  const removeItem = useCounterStore((state) => state.removeItem)
+  const addItem = useCounterStore((state) => state.addItem);
+  const removeItem = useCounterStore((state) => state.removeItem);
   const pathname = usePathname();
-  const items = useCounterStore((state) => state.items)
+  const items = useCounterStore((state) => state.items);
   const router = useRouter();
+  const [page, setPage] = useState(1);
+  const searchParams = useSearchParams();
+
+  const pageNumber = searchParams.get("page");
+  const limit = searchParams.get("limit");
   
 
-  const fetchProducts = async () => {
-    try {
-      const response = await fetch("/api", {
+
+const fetchProducts = async (pageNumber = 1, limit = 4) => {
+  try {
+    const response = await fetch(
+      `/api/dashboard?page=${pageNumber}&limit=${limit}`,
+      {
         cache: "no-store",
-      });
+      }
+    );  
 
-      const dataJson = await response.json();
-      const userName = getDecryptedItem('user')
-      console.log(userName.id, "uname")
-  
-      const data = dataJson.filter((data) => {
-        return data.userId === userName.id
-      })
-      console.log(data,"match")
+    const result = await response.json();
+    setToalPage(Math.ceil(result.pagination.totalItems/8))
 
+    const userName = getDecryptedItem("user");
 
-      setProducts(pathname === "/admin/dashboard" ? data : dataJson);
-      setLoading(false);
-    } catch (error) {
-      console.error("Error fetching products:", error);
-      setLoading(false);
-    }
-  };
+    const data = result.data.filter((item) => {
+      return item.userId === userName.id;
+    });
+
+    setProducts(
+      pathname === "/admin/dashboard"
+        ? data
+        : result.data
+    );
+
+    setFilteredProducts(
+      pathname === "/admin/dashboard"
+        ? data
+        : result.data
+    );
+
+    // Optional: store pagination info
+    setTotalPages(result.pagination.totalPages);
+
+    setLoading(false);
+  } catch (error) {
+    console.error("Error fetching products:", error);
+    setLoading(false);
+  }
+};
 
   React.useEffect(() => {
-    fetchProducts();
-  }, []);
+    const token = localStorage.getItem("token");
+    const storedUser = localStorage.getItem("user");
+
+    if (!token || !storedUser) {
+      localStorage.clear();
+      router.push("/auth/login");
+      return;
+    }
+    fetchProducts(pageNumber,limit);
+  }, [pageNumber,limit]);
 
   const handleShow = () => {
     setEditProduct(null);
@@ -381,31 +449,74 @@ export default function Dashboard() {
     router.push(`/admin/dashboard/ordersummary`);
   };
 
-  //  throw new Error("Triggering global error boundary"); 
+  function handleChange(event) {
+    const searchInput = event.target.value.toLowerCase().trim();
 
+    if (!searchInput) {
+      setFilteredProducts(products);
+      return;
+    }
+
+    const searchResult = products.filter((product) =>
+      product.name.toLowerCase().includes(searchInput),
+    );
+
+    setFilteredProducts(searchResult);
+  }
+
+
+
+  //  throw new Error("Triggering global error boundary");
 
   return (
     <>
       <div className="min-h-screen bg-gradient-to-br from-slate-100 via-blue-50 to-indigo-100 p-8 flex flex-col gap-4">
-       {pathname === '/admin/dashboard' && <div className="flex flex-col gap-5 rounded-[35px] border border-white/20 bg-white/60 p-4 shadow-2xl backdrop-blur-xl md:flex-row md:items-center md:justify-between">
-          <div>
-            <h1 className="text-xl font-extrabold tracking-tight text-gray-800">
-              Product Dashboard
-            </h1>
+        {pathname === "/admin/dashboard" && (
+          <div className="flex flex-col gap-5 rounded-[35px] border border-white/20 bg-white/60 p-4 shadow-2xl backdrop-blur-xl md:flex-row md:items-center md:justify-between">
+            <div>
+              <h1 className="text-xl font-extrabold tracking-tight text-gray-800">
+                Product Dashboard
+              </h1>
 
-            <p className="mt-2 text-gray-500">
-              Manage your products beautifully and efficiently.
-            </p>
+              <p className="mt-2 text-gray-500">
+                Manage your products beautifully and efficiently.
+              </p>
+            </div>
+
+            <Button
+              variant="primary"
+              onClick={handleShow}
+              className="rounded-2xl border-0 bg-gradient-to-r from-blue-600 to-indigo-600 py-2 text-lg font-semibold shadow-lg"
+            >
+              + Add New Product
+            </Button>
           </div>
-
-          <Button
-            variant="primary"
-            onClick={handleShow}
-            className="rounded-2xl border-0 bg-gradient-to-r from-blue-600 to-indigo-600 py-2 text-lg font-semibold shadow-lg"
-          >
-            + Add New Product
-          </Button>
-        </div>}
+        )}
+        <div className="flex justify-end bg-white/70">
+          {" "}
+          <div className="flex items-center gap-3 p-4 rounded-3xl border border-white/30  shadow-lg backdrop-blur-md">
+            {" "}
+            {/* Search Input */}{" "}
+            <div className="relative flex items-center rounded-xl border border-gray-200 bg-gray-50 px-3 py-2 shadow-sm focus-within:border-blue-500 focus-within:ring-2 focus-within:ring-blue-500/20">
+              {" "}
+              <span className="mr-2 text-gray-400">🔍</span>{" "}
+              <input
+                type="text"
+                placeholder="Search products..."
+                className="w-64 bg-transparent text-sm text-gray-700 placeholder-gray-400 outline-none md:w-80"
+                onChange={(e) => handleChange(e)}
+              />{" "}
+            </div>{" "}
+            {/* Filter Button */}{" "}
+            <button
+              className="flex items-center gap-2 rounded-xl bg-blue-600 px-4 py-2 text-sm font-medium text-white shadow-sm transition-all hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 active:scale-[0.98]"
+              onClick={() => setFilterDrawerShow(true)}
+            >
+              {" "}
+              <span>⚙️</span> <span>Filter</span>{" "}
+            </button>{" "}
+          </div>{" "}
+        </div>
 
         {loading ? (
           <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
@@ -458,9 +569,9 @@ export default function Dashboard() {
               </CCard>
             ))}
           </div>
-        ) : products.length > 0 ? (
+        ) : filteredProducts.length > 0 ? (
           <div className="grid grid-cols-1 gap-8 md:grid-cols-1 lg:grid-cols-2 xl:grid-cols-4">
-            {products.map((product) => (
+            {filteredProducts.map((product) => (
               <ProductCard
                 key={product._id}
                 product={product}
@@ -477,7 +588,6 @@ export default function Dashboard() {
           </div>
         ) : (
           <div className="flex min-h-[400px] flex-col items-center justify-center rounded-[35px] border border-dashed border-gray-300 bg-white/60 shadow-xl backdrop-blur-lg">
-
             <h2 className="mt-5 text-2xl font-bold text-gray-700">
               No Products Found
             </h2>
@@ -494,11 +604,10 @@ export default function Dashboard() {
             </button>
           </div>
         )}
-
       </div>
       {/* <button type="button" class="text-heading bg-gradient-to-r from-red-200 via-red-300 to-yellow-200 hover:bg-gradient-to-bl focus:ring-4 focus:outline-none checkout-btn focus:ring-red-100 dark:focus:ring-red-400 font-medium rounded-base text-sm px-4 py-2.5 text-center leading-5">Checkout</button> */}
 
-      {(items.length > 0 && pathname === '/admin/dashboard/products') &&
+      {items.length > 0 && pathname === "/admin/dashboard/products" && (
         <button
           type="button"
           onClick={handlecheckout}
@@ -511,12 +620,29 @@ export default function Dashboard() {
             viewBox="0 0 24 24"
             xmlns="http://w3.org"
           >
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"></path>
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"
+            ></path>
           </svg>
           Checkout
         </button>
-      }
-
+      )}
+      <FilterDrawer
+        show={filterDrawerShow}
+        setFilterDrawerShow={setFilterDrawerShow}
+        setFilteredProducts={setFilteredProducts}
+        products={products}
+      />
+      <ProductPagination
+        currentPage={page}
+        totalPages={totalPage}
+        onPageChange={setPage}
+        limit={8}
+        setLoading={setLoading}
+      />
       <CreateProductModal
         show={show}
         handleClose={handleClose}
@@ -529,3 +655,4 @@ export default function Dashboard() {
     </>
   );
 }
+

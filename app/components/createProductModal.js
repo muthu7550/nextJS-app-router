@@ -97,7 +97,7 @@ useEffect(() => {
       if (productImage) {
         formData.append("image", productImage);
       }
-      handleClose();
+      // handleClose();
         
       let response;
 
@@ -119,7 +119,7 @@ useEffect(() => {
         throw new Error(data.message || "Something went wrong");
       }
 
-      resetForm();
+      // resetForm();
       await fetchProducts();
 
     } catch (error) {
