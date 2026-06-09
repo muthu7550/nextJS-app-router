@@ -32,6 +32,8 @@ function ProductCard({
   removeItem,
   setLoading: layoutLoading,
   user: userAccess = "Admin",
+  pageNumber,
+  limit
 }) {
   const router = useRouter();
   const [tilt, setTilt] = React.useState({ x: 0, y: 0 });
@@ -59,12 +61,7 @@ function ProductCard({
       y: x * threshold,
     });
   };
-    const searchParams = useSearchParams();
 
-    console.log("searchParams", searchParams.toString())
-
-  const pageNumber = searchParams.get("page");
-  const limit = searchParams.get("limit");
 
   const handleEdit = () => {
     setEditProduct(product);
@@ -583,6 +580,8 @@ const fetchProducts = async (pageNumber = 1, limit = 4) => {
                 removeItem={removeItem}
                 setLoading={setLoading}
                 user={user}
+                pageNumber={pageNumber}
+                limit={limit}
               />
             ))}
           </div>
