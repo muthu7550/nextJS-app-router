@@ -3,29 +3,21 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { NavDropdown } from "react-bootstrap";
-import { useCounterStore } from './stores/useCounterStore.ts'
-import {getDecryptedItem} from './auth/encript.js'
+import { useCounterStore } from "./stores/useCounterStore.ts";
+import { getDecryptedItem } from "./auth/encript.js";
 
-import {
-  FaUserCircle,
-  FaBell,
-  FaSearch,
-  FaCog,
-} from "react-icons/fa";
+import { FaBell, FaSearch, FaCog } from "react-icons/fa";
 import { useEffect, useState } from "react";
 
 function ProfileDropdown() {
   const router = useRouter();
-
   const [parsedUserDetails, setParsedUserDetails] = useState(null);
 
   useEffect(() => {
     const user = getDecryptedItem("user");
 
     const parsed =
-      typeof user === "string"
-        ? JSON.parse(user)
-        : user;
+      typeof user === "string" ? JSON.parse(user) : user;
 
     setParsedUserDetails(parsed);
   }, []);
@@ -92,9 +84,13 @@ function ProfileDropdown() {
 }
 
 export default function Navbar() {
-
-  const Item = useCounterStore((state) => state)
   const pathname = usePathname();
+
+  const cartCount = useCounterStore((state) =>
+    state.items.reduce((acc, item) => {
+      return acc + (Number(item?.itemCount) || 0);
+    }, 0)
+  );
 
   const navLinks = [
     {
@@ -109,12 +105,7 @@ export default function Navbar() {
       name: "Cart",
       href: "/admin/dashboard/ordersummary",
     },
-    // {
-    //   name: "Analytics",
-    //   href: "/admin/dashboard/analytics",
-    // },
   ];
-  
 
   return (
     <nav
@@ -127,7 +118,6 @@ export default function Navbar() {
       }}
     >
       <div className="flex items-center gap-10">
-
         <ul className="hidden md:flex items-center gap-3 m-0 p-0">
           {navLinks.map((link) => {
             const isActive = pathname === link.href;
@@ -146,9 +136,13 @@ export default function Navbar() {
                     transition: "0.3s ease",
                   }}
                 >
-                 
-                {link.name}
-                  {link.name === 'Cart' && <span className="bg-danger-soft border border-danger-subtle text-fg-danger-strong text-xs font-medium px-1.5 py-0.5 rounded-full">{Item.items.length}</span>}
+                  {link.name}
+
+                  {link.name === "Cart" && (
+                    <span className="bg-danger-soft border border-danger-subtle text-fg-danger-strong text-xs font-medium px-1.5 py-0.5 rounded-full">
+                      {cartCount}
+                    </span>
+                  )}
                 </Link>
               </li>
             );
@@ -157,8 +151,6 @@ export default function Navbar() {
       </div>
 
       <div className="flex items-center gap-4">
-
-        {/* SEARCH */}
         <div
           className="hidden md:flex items-center gap-2 px-4 py-2"
           style={{
@@ -191,9 +183,7 @@ export default function Navbar() {
         >
           <FaBell />
 
-          <span
-            className="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger"
-          >
+          <span className="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
             3
           </span>
         </button>

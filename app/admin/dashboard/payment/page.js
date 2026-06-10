@@ -15,6 +15,7 @@ export default function PaymentPage() {
 
   const upiId = "6382429837@ybl";
   const phone = "6382429837";
+  const clearCart = useCounterStore((state) => state.clearCart);
 
   const totalAmount = items.reduce((acc, item) => {
     const price = Number(item?.price) || 0;
@@ -112,7 +113,7 @@ export default function PaymentPage() {
       }
 
       await resetProductItemCounts();
-
+      clearCart();
       localStorage.removeItem("deliveryAddress");
       localStorage.removeItem("counter-storage");
 

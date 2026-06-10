@@ -1,43 +1,42 @@
-// stores/useCounterStore.ts
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 
-interface CounterState {
-  items: any[];
-  addItem: (newItem: any) => void;
-  removeItem: (id: any) => void;
-  clearItems: () => void;
-}
-
-export const useCounterStore = create<CounterState>()(
+export const useCounterStore = create(
   persist(
     (set) => ({
       items: [],
 
-      addItem: (newItem) =>
-        set((state) => ({
-          items: [...state.items, newItem],
-        })),
-
-      // Use .filter() to create a new array without the target item
-      removeItem: (id) =>
+      addItem: (item) =>
         set((state) => {
-          const items = [...state.items];
+          const existingItem = state.items.find(
+            (product:any) => product._id === item._id
+          );
 
-          const index = items.findIndex((item) => item._id === id);
-
-          if (index !== -1) {
-            items.splice(index, 1);
+          if (existingItem) {
+            return {
+              items: state.items.map((product) =>
+                product._id === item._id ? item : product
+              ),
+            };
           }
 
-          return { items };
+          return {
+            items: [...state.items, item],
+          };
         }),
 
-      clearItems: () => set({ items: [] }),
+      removeItem: (id) =>
+        set((state:any) => ({
+          items: state.items.filter((item:any) => item._id !== id),
+        })),
+
+      clearCart: () =>
+        set({
+          items: [],
+        }),
     }),
-    
     {
       name: "counter-storage",
-    },
-  ),
+    }
+  )
 );
