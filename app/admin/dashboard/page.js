@@ -1,9 +1,9 @@
-import Dashboard from "./DashboardClient";
+// app/admin/dashboard/products/page.js
+import DashboardClient from "./DashboardClient";
 
 export default function Page({ searchParams }) {
-  // Server component receives searchParams automatically
-  const pageNumber = Number(searchParams.page || 1);
-  const limit = Number(searchParams.limit || 8);
+  const pageNumber = Number(searchParams?.page || 1); 
+  const limit = Number(searchParams?.limit || 8);
 
-  return <Dashboard pageNumber={pageNumber} limit={limit} />;
+  return <DashboardClient pageNumber={pageNumber} limit={limit} />;
 }
