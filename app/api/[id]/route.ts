@@ -13,16 +13,13 @@ export async function GET(
   { params }: { params: { id: string } }
 ) {
   try {
-    console.log("GET USER START");
 
     await dbConnect();
 
     const { id } = params;
-    console.log("User ID:", id);
 
     const user = await Users.findById(id);
 
-    console.log("User found:", !!user);
 
     if (!user) {
       return NextResponse.json(
@@ -52,7 +49,6 @@ export async function PUT(
   { params }: { params: { id: string } }
 ) {
   try {
-    console.log("PUT USER START");
 
     await dbConnect();
 
@@ -66,18 +62,10 @@ export async function PUT(
     const file = formData.get("image") as File | null;
     const existingImage = formData.get("existingImage");
 
-    console.log("Incoming data:", {
-      id,
-      name,
-      price,
-      itemCount,
-    });
-
     let imagePath = (existingImage as string) || "";
 
     // ✅ CLOUDINARY UPLOAD (instead of local storage)
     if (file && file.size > 0) {
-      console.log("New image received:", file.name);
 
       const bytes = await file.arrayBuffer();
       const buffer = Buffer.from(bytes);
@@ -101,7 +89,6 @@ export async function PUT(
 
       imagePath = result.secure_url;
 
-      console.log("Cloudinary image URL:", imagePath);
     }
 
     const updatedUser = await Users.findByIdAndUpdate(
@@ -116,7 +103,6 @@ export async function PUT(
       { new: true }
     );
 
-    console.log("Updated user:", !!updatedUser);
 
     if (!updatedUser) {
       return NextResponse.json(
@@ -149,7 +135,6 @@ export async function DELETE(
   { params }: { params: { id: string } }
 ) {
   try {
-    console.log("DELETE USER START");
 
     await dbConnect();
 
@@ -157,7 +142,6 @@ export async function DELETE(
 
     const deletedUser = await Users.findByIdAndDelete(id);
 
-    console.log("Deleted:", !!deletedUser);
 
     if (!deletedUser) {
       return NextResponse.json(

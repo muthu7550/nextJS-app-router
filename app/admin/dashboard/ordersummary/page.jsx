@@ -19,6 +19,13 @@ export default function OrderSummary() {
   const removeItem = useCounterStore((state) => state.removeItem);
 
   const [hydrated, setHydrated] = useState(false);
+  const [showAddressModal, setShowAddressModal] = useState(false);
+
+  const [address, setAddress] = useState({
+    street: "",
+    city: "",
+    pincode: "",
+  });
 
   useEffect(() => {
     setHydrated(true);
@@ -39,6 +46,20 @@ export default function OrderSummary() {
   };
 
   const handlePaymentPage = () => {
+    setShowAddressModal(true);
+  };
+
+  const handleAddressSubmit = () => {
+    if (
+      !address.street.trim() ||
+      !address.city.trim() ||
+      !address.pincode.trim()
+    ) {
+      alert("Please enter full address");
+      return;
+    }
+
+    localStorage.setItem("deliveryAddress", JSON.stringify(address));
     router.push("/admin/dashboard/payment");
   };
 
@@ -145,14 +166,14 @@ export default function OrderSummary() {
                     <div className="flex h-24 w-24 items-center justify-center rounded-md border bg-gray-50 p-2">
                       <img
                         src={item?.image || "/placeholder.png"}
-                        alt={item?.name || item?.title || "Product"}
+                        alt={item?.name || "Product"}
                         className="max-h-full max-w-full object-contain"
                       />
                     </div>
 
                     <div className="min-w-0">
                       <h3 className="line-clamp-2 text-sm font-semibold leading-5 text-gray-900">
-                        {item?.name || item?.title || "Product Name"}
+                        {item?.name || "Product Name"}
                       </h3>
 
                       <p className="mt-1 line-clamp-1 text-xs text-gray-500">
@@ -203,19 +224,15 @@ export default function OrderSummary() {
                     </div>
 
                     <div className="text-left md:text-right">
-                      <div className="flex justify-between gap-4 md:block">
-                        <p className="text-xs text-gray-500">Price</p>
-                        <p className="text-base font-bold text-gray-900">
-                          ₹{price.toFixed(2)}
-                        </p>
-                      </div>
+                      <p className="text-xs text-gray-500">Price</p>
+                      <p className="text-base font-bold text-gray-900">
+                        ₹{price.toFixed(2)}
+                      </p>
 
-                      <div className="mt-2 flex justify-between gap-4 md:block">
-                        <p className="text-xs text-gray-500">Subtotal</p>
-                        <p className="text-lg font-bold text-gray-900">
-                          ₹{total.toFixed(2)}
-                        </p>
-                      </div>
+                      <p className="mt-2 text-xs text-gray-500">Subtotal</p>
+                      <p className="text-lg font-bold text-gray-900">
+                        ₹{total.toFixed(2)}
+                      </p>
                     </div>
                   </div>
                 );
@@ -231,9 +248,7 @@ export default function OrderSummary() {
                 label={`Items Total (${totalItems})`}
                 value={`₹${grandTotal.toFixed(2)}`}
               />
-
               <SummaryRow label="Delivery" value="FREE" green />
-
               <SummaryRow label="Tax" value="₹0.00" />
             </div>
 
@@ -263,6 +278,62 @@ export default function OrderSummary() {
           </aside>
         </div>
       </div>
+
+      {showAddressModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4">
+          <div className="w-full max-w-md rounded-xl bg-white p-5 shadow-lg">
+            <h2 className="text-xl font-bold text-gray-900">
+              Enter Delivery Address
+            </h2>
+
+            <input
+              type="text"
+              value={address.street}
+              onChange={(e) =>
+                setAddress({ ...address, street: e.target.value })
+              }
+              placeholder="Street address"
+              className="mt-4 w-full rounded-lg border px-3 py-2 text-sm outline-none"
+            />
+
+            <input
+              type="text"
+              value={address.city}
+              onChange={(e) =>
+                setAddress({ ...address, city: e.target.value })
+              }
+              placeholder="City"
+              className="mt-3 w-full rounded-lg border px-3 py-2 text-sm outline-none"
+            />
+
+            <input
+              type="text"
+              value={address.pincode}
+              onChange={(e) =>
+                setAddress({ ...address, pincode: e.target.value })
+              }
+              placeholder="Pincode"
+              className="mt-3 w-full rounded-lg border px-3 py-2 text-sm outline-none"
+            />
+
+            <div className="mt-4 flex justify-end gap-3">
+              <button
+                onClick={() => setShowAddressModal(false)}
+                className="rounded-lg border px-4 py-2 text-sm font-semibold"
+              >
+                Cancel
+              </button>
+
+              <button
+                onClick={handleAddressSubmit}
+                className="rounded-lg bg-[#ffd814] px-4 py-2 text-sm font-bold text-gray-900 hover:bg-[#f7ca00]"
+              >
+                Continue to Payment
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </main>
   );
 }
@@ -287,40 +358,6 @@ function CartSkeleton() {
     <main className="min-h-screen bg-[#f3f4f6] px-3 py-4">
       <div className="mx-auto max-w-6xl animate-pulse">
         <div className="mb-4 h-12 rounded-lg bg-gray-200" />
-
-        <div className="grid gap-4 lg:grid-cols-[1fr_330px]">
-          <section className="rounded-lg border bg-white p-4">
-            <div className="mb-4 h-6 w-40 rounded bg-gray-200" />
-
-            {[1, 2, 3].map((item) => (
-              <div key={item} className="grid gap-3 border-t py-3 md:grid-cols-[90px_1fr_125px]">
-                <div className="h-24 w-24 rounded-md bg-gray-200" />
-
-                <div>
-                  <div className="mb-2 h-4 w-3/4 rounded bg-gray-200" />
-                  <div className="mb-2 h-3 w-1/2 rounded bg-gray-200" />
-                  <div className="mb-2 h-3 w-20 rounded bg-gray-200" />
-                  <div className="h-7 w-48 rounded bg-gray-200" />
-                </div>
-
-                <div>
-                  <div className="mb-2 h-4 rounded bg-gray-200" />
-                  <div className="h-5 rounded bg-gray-200" />
-                </div>
-              </div>
-            ))}
-          </section>
-
-          <aside className="h-fit rounded-lg border bg-white p-4">
-            <div className="mb-4 h-6 w-36 rounded bg-gray-200" />
-            <div className="mb-3 h-4 rounded bg-gray-200" />
-            <div className="mb-3 h-4 rounded bg-gray-200" />
-            <div className="mb-4 h-4 rounded bg-gray-200" />
-            <div className="mb-4 h-px bg-gray-200" />
-            <div className="mb-4 h-6 rounded bg-gray-200" />
-            <div className="h-10 rounded bg-gray-200" />
-          </aside>
-        </div>
       </div>
     </main>
   );

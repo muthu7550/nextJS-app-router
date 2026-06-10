@@ -1,32 +1,56 @@
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import Offcanvas from 'react-bootstrap/Offcanvas';
 import Form from 'react-bootstrap/Form';
 import Button from 'react-bootstrap/Button';
 
-export default function FilterDrawer({ show, setFilterDrawerShow, products, setFilteredProducts}) {
+
+export default function FilterDrawer({ show, setFilteredProducts, setLoading, pagerNumber, limit, filterDrawerShow, setFilterDrawerShow}) {
   const handleClose = () => setFilterDrawerShow(false);
   const[state,setState] = useState({})
-
-const handleSubmit = (event) => {
+  const formRef = useRef();
+const handleSubmit = async (event) => {
   event.preventDefault();
 
   const formData = new FormData(event.target);
   const filters = Object.fromEntries(formData.entries());
-  console.log(filters,"dd")
-  console.log(products,"ddd")
 
-  const filtereList = products.filter((product)=>{
-    return   product.price >= filters.minprice && product.price <= filters.maxprice
-  })
-  console.log(filtereList,"dd")
-  if(filtereList.length > 0){
+  try {
+    handleClose();
+    setLoading(true);
+    
+    const response = await fetch("/api/filter", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        page: 1,
+        limit: 8,
+        minprice: filters.minprice || "",
+        maxprice: filters.maxprice || "",
+        search: filters.search || "",
+      }),
+    });
 
-    setFilteredProducts(filtereList)
-  }else{
-    setFilteredProducts([])
+    const result = await response.json();
+
+    if (!response.ok) {
+      throw new Error(result.error || "Filter failed");
+    }
+
+    setFilteredProducts(result.data);
+    // setProducts(result.data);
+
+  } catch (error) {
+    console.error("Filter error:", error);
+  } finally {
+    setLoading(false);
   }
-  handleClose()
 };
+
+function handleClear(){
+   formRef.current?.reset();
+}
 
   return (
 <Offcanvas show={show} onHide={handleClose} placement="end">
@@ -37,7 +61,7 @@ const handleSubmit = (event) => {
   <div className="d-flex flex-column h-100">
     <Offcanvas.Body className="flex-grow-1 overflow-auto">
 
-      <Form id="filterForm" onSubmit={handleSubmit}>
+      <Form id="filterForm" ref={formRef} onSubmit={handleSubmit}>
         <Form.Group className="mb-3">
           <Form.Label>Min Price</Form.Label>
           <Form.Control name="minprice" type="number" />
@@ -50,12 +74,12 @@ const handleSubmit = (event) => {
 
         <Form.Group className="mb-3">
           <Form.Label>Start Date</Form.Label>
-          <Form.Control name="startDate" type="date" />
+          <Form.Control disabled name="startDate" type="date" />
         </Form.Group>
 
         <Form.Group className="mb-3">
           <Form.Label>End Date</Form.Label>
-          <Form.Control name="endDate" type="date" />
+          <Form.Control disabled name="endDate" type="date" />
         </Form.Group>
 
         <Form.Group className="mb-3">
@@ -83,8 +107,11 @@ const handleSubmit = (event) => {
       </Form>
 
     </Offcanvas.Body>
-
-    <div className="border-top p-3 d-flex justify-content-end">
+     
+    <div className="border-top p-3 d-flex justify-content-between">
+       <Button className="btn btn-light" form="filterForm" onClick={handleClear}>
+        Clear Filters
+      </Button>
       <Button type="submit" form="filterForm">
         Apply Filters
       </Button>

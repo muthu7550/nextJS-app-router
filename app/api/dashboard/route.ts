@@ -10,7 +10,6 @@ export async function GET(request: NextRequest) {
 
     const page = Number(searchParams.get("page")) || 1;
     const limit = Number(searchParams.get("limit")) || 10;
-     console.log(page,limit)
     const skip = (page - 1) * limit;
 
     const [products, totalItems] = await Promise.all([

@@ -29,7 +29,6 @@ export default function Register() {
   }
 
   function handleSubmit(){
-  console.log(user)
 
 fetch('/api/register', {
   method: 'POST',

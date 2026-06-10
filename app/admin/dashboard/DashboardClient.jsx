@@ -1,6 +1,6 @@
 "use client";
 
-import React, { Suspense, useEffect, useState } from "react";
+import React, { Suspense, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import CreateProductModal from "../../components/createProductModal.js";
 import { useCounterStore } from "../../stores/useCounterStore.ts";
@@ -19,12 +19,10 @@ import { usePathname } from "next/navigation";
 import FilterDrawer from "../../components/FilterDrawer.jsx";
 import ProductPagination from "../../components/Pagination.jsx";
 import { ProductCard } from "./ProductCard.jsx";
+import {Debounce}  from "../../components/Debounce.js"
 
 export default function Dashboard({pageNumber,limit}) {
   const user = getDecryptedItem("token") || "admin";
-
-  console.log(user, "userr");
-
   const [products, setProducts] = React.useState([]);
   const [filteredProducts, setFilteredProducts] = React.useState([]);
   const [totalPage, setToalPage] = React.useState();
@@ -100,21 +98,34 @@ export default function Dashboard({pageNumber,limit}) {
     router.push(`/admin/dashboard/ordersummary`);
   };
 
-  function handleChange(event) {
-    const searchInput = event.target.value.toLowerCase().trim();
+  const debouncedSearch = useMemo(
+  () =>
+    Debounce(async (searchInput) => {
+      const response = await fetch("/api/filter", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          page: 1,
+          limit: 8,
+          search: searchInput,
+        }),
+      });
 
-    if (!searchInput) {
-      setFilteredProducts(products);
-      return;
-    }
+      const result = await response.json();
+      setFilteredProducts(result.data);
+    }, 500),
+  []
+);
 
-    const searchResult = products.filter((product) =>
-      product.name.toLowerCase().includes(searchInput),
-    );
-
-    setFilteredProducts(searchResult);
+  async function handleChange(event) {
+    // const searchInput = event.target.value.toLowerCase().trim();
+       debouncedSearch(
+    event.target.value.toLowerCase().trim()
+  );
   }
-
+   
   //  throw new Error("Triggering global error boundary");
 
   return (
@@ -235,6 +246,7 @@ export default function Dashboard({pageNumber,limit}) {
                   user={user}
                   pageNumber={pageNumber}
                   limit={limit}
+                  filteredProducts={filteredProducts}
                 />
               ))}
             </div>
@@ -286,7 +298,11 @@ export default function Dashboard({pageNumber,limit}) {
           show={filterDrawerShow}
           setFilterDrawerShow={setFilterDrawerShow}
           setFilteredProducts={setFilteredProducts}
-          products={products}
+          products={filteredProducts}
+          setLoading={setLoading}
+          pageNumber={pageNumber}
+          limit={limit}
+          filterDrawerShow={filterDrawerShow}
         />
         <ProductPagination
           currentPage={page}

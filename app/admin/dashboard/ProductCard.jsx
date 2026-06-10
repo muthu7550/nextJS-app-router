@@ -5,8 +5,6 @@ import { useRouter } from "next/navigation";
 import { useCounterStore } from "../../stores/useCounterStore.ts";
 import { usePathname } from "next/navigation";
 
-
-
 export function ProductCard({
   product,
   fetchProducts,
@@ -18,7 +16,8 @@ export function ProductCard({
   setLoading: layoutLoading,
   user: userAccess = "Admin",
   pageNumber,
-  limit
+  limit,
+  filteredProducts,
 }) {
   const router = useRouter();
   const [tilt, setTilt] = React.useState({ x: 0, y: 0 });
@@ -32,7 +31,6 @@ export function ProductCard({
 
   const pathname = usePathname();
 
-      console.log("pathname", pathname.toString())
 
   const handleMove = (e) => {
     const { left, top, width, height } =
@@ -47,7 +45,6 @@ export function ProductCard({
     });
   };
 
-
   const handleEdit = () => {
     setEditProduct(product);
     setShow(true);
@@ -60,8 +57,14 @@ export function ProductCard({
       await fetch(`/api/${product._id}`, {
         method: "DELETE",
       });
+      await fetchProducts(
+        filteredProducts.length === 1 ? pageNumber - 1 : pageNumber,
+        limit,
+      );
+      router.replace(
+        `/admin/dashboard?page=${filteredProducts.length === 1 ? pageNumber - 1 : pageNumber}&limit=${limit}`,
+      );
 
-      await fetchProducts(pageNumber,limit);
       layoutLoading(false);
     } catch (error) {
       console.error("Error deleting product:", error);
@@ -69,7 +72,9 @@ export function ProductCard({
   };
 
   const handleViewDetails = () => {
-    router.push(`/admin/dashboard/products/${product._id}?page=${pageNumber}&limit=${limit}`);
+    router.push(
+      `/admin/dashboard/products/${product._id}?page=${pageNumber}&limit=${limit}`,
+    );
   };
 
   const handleCountIncrease = (product) => {
@@ -99,11 +104,10 @@ export function ProductCard({
         return response.json();
       })
       .then(async (data) => {
-        console.log("Success:", data.data);
 
         addItem(data.data);
 
-        await fetchProducts(pageNumber,limit);
+        await fetchProducts(pageNumber, limit);
       })
       .catch((error) => console.error("Error updating product:", error));
   };
@@ -135,10 +139,8 @@ export function ProductCard({
         return response.json();
       })
       .then(async (data) => {
-        console.log(data.data._id, "data.data._id");
         let res = removeItem(data.data._id);
-        console.log(res);
-        await fetchProducts(pageNumber,limit);
+        await fetchProducts(pageNumber, limit);
       })
       .catch((error) => console.error("Error updating product:", error));
   };

@@ -22,6 +22,8 @@ export default function CreateProductModal({
   const [productImage, setProductImage] = useState(null);
   const [previewImage, setPreviewImage] = useState("");
   const [disable, setIsDisable] = useState(false);
+ console.log(editProduct,"editProduct")
+ console.log(isedit,"editProduct")
 
 
   useEffect(() => {
@@ -34,7 +36,7 @@ export default function CreateProductModal({
       resetForm();
     }
 
-  }, [editProduct, isedit]);
+  }, [editProduct, isedit,show]);
   
 useEffect(() => {
 
@@ -47,7 +49,8 @@ useEffect(() => {
   const isEmpty =
     !productName ||
     !productDescription ||
-    !productPrice ||
+    !productPrice || 
+     productPrice < 0 ||
     (!productImage && !previewImage);
 
   setIsDisable(isEmpty || isFormSame);
@@ -128,17 +131,21 @@ useEffect(() => {
       await fetchProducts(pageNumber,limit);
 
     } catch (error) {
-      console.log(error);
       alert(error.message);
     } finally {
       setLoading(false);
     }
   };
 
+  const handleModalClose = () => {
+  handleClose();
+  setEditProduct(null);
+};
+
   return (
     <Modal
       show={show}
-      onHide={handleClose}
+      onHide={handleModalClose}
       backdrop="static"
       keyboard={false}
     >
@@ -231,7 +238,6 @@ useEffect(() => {
           variant="secondary"
           onClick={() => {
             resetForm();
-            handleClose();
           }}
         >
           Clear
