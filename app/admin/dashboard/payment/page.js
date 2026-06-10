@@ -22,6 +22,31 @@ export default function PaymentPage() {
     return acc + price * qty;
   }, 0);
 
+  async function resetProductItemCounts() {
+    const updateRequests = items.map((item) => {
+      const formData = new FormData();
+
+      formData.append("name", item.name || "");
+      formData.append("description", item.description || "");
+      formData.append("price", String(item.price || 0));
+      formData.append("itemCount", "0");
+      formData.append("existingImage", item.image || "");
+
+      return fetch(`/api/${item._id}`, {
+        method: "PUT",
+        body: formData,
+      });
+    });
+
+    const responses = await Promise.all(updateRequests);
+
+    const failed = responses.find((response) => !response.ok);
+
+    if (failed) {
+      throw new Error("Order placed, but failed to reset some cart counts");
+    }
+  }
+
   async function handlePaymentDone() {
     try {
       if (!utrNumber.trim()) {
@@ -86,7 +111,10 @@ export default function PaymentPage() {
         throw new Error(result.error || "Order failed");
       }
 
+      await resetProductItemCounts();
+
       localStorage.removeItem("deliveryAddress");
+      localStorage.removeItem("counter-storage");
 
       alert("Order placed successfully");
       router.push("/admin/dashboard/orders");

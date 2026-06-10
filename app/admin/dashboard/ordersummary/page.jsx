@@ -31,13 +31,17 @@ export default function OrderSummary() {
     setHydrated(true);
   }, []);
 
-  const grandTotal = items.reduce((acc, item) => {
+  const cartItems = items.filter((item) => {
+    return Number(item?.itemCount) > 0;
+  });
+
+  const grandTotal = cartItems.reduce((acc, item) => {
     const price = Number(item?.price) || 0;
     const qty = Number(item?.itemCount) || 1;
     return acc + price * qty;
   }, 0);
 
-  const totalItems = items.reduce((acc, item) => {
+  const totalItems = cartItems.reduce((acc, item) => {
     return acc + (Number(item?.itemCount) || 1);
   }, 0);
 
@@ -85,9 +89,16 @@ export default function OrderSummary() {
   };
 
   const handleQuantityChange = (item, value) => {
+    const qty = Number(value);
+
+    if (qty <= 0) {
+      removeItem(item?._id);
+      return;
+    }
+
     addItem({
       ...item,
-      itemCount: Number(value),
+      itemCount: qty,
     });
   };
 
@@ -95,7 +106,7 @@ export default function OrderSummary() {
     return <CartSkeleton />;
   }
 
-  if (items.length === 0) {
+  if (cartItems.length === 0) {
     return (
       <main className="min-h-screen bg-[#f3f4f6] px-3 py-4">
         <section className="mx-auto max-w-xl rounded-lg border bg-white p-8 text-center shadow-sm">
@@ -153,7 +164,7 @@ export default function OrderSummary() {
             </div>
 
             <div className="divide-y">
-              {items.map((item, index) => {
+              {cartItems.map((item, index) => {
                 const price = Number(item?.price) || 0;
                 const quantity = Number(item?.itemCount) || 1;
                 const total = price * quantity;
