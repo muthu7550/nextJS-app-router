@@ -69,7 +69,7 @@ export function ProductCard({
   };
 
   const handleViewDetails = () => {
-    router.push(`/admin/dashboard/products/${product._id}`);
+    router.push(`/admin/dashboard/products/${product._id}?page=${pageNumber}&limit=${limit}`);
   };
 
   const handleCountIncrease = (product) => {

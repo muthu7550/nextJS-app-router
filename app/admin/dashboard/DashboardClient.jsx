@@ -19,8 +19,9 @@ import { usePathname } from "next/navigation";
 import FilterDrawer from "../../components/FilterDrawer.jsx";
 import ProductPagination from "../../components/Pagination.jsx";
 import { ProductCard } from "./ProductCard.jsx";
+import {  useSearchParams } from "next/navigation";
 
-export default function Dashboard({pageNumber,limit}) {
+export default function Dashboard() {
   const user = getDecryptedItem("token") || "admin";
 
   console.log(user, "userr");
@@ -39,9 +40,19 @@ export default function Dashboard({pageNumber,limit}) {
   const pathname = usePathname();
   const items = useCounterStore((state) => state.items);
   const router = useRouter();
-  const [page, setPage] = useState(1);
+  //   const router = useRouter();
+  // const pathname = usePathname();
+  const searchParams = useSearchParams();
+  
+  const pageNumber = Number(searchParams.get("page") || 1);
+  const limit = Number(searchParams.get("limit") || 8);
+  const [page, setPage] = useState(pageNumber);
 
-
+const handlePageChange = (newPage) => {
+  setPage(newPage);
+  setLoading(true);
+  router.push(`/admin/dashboard/products?page=${newPage}&limit=${limit}`);
+};
   const fetchProducts = async (pageNumber = 1, limit = 4) => {
     try {
       const response = await fetch(
@@ -52,7 +63,7 @@ export default function Dashboard({pageNumber,limit}) {
       );
 
       const result = await response.json();
-      setToalPage(Math.ceil(result.pagination.totalItems / 8));
+      setToalPage(Math.ceil(result.pagination.totalItems / limit));
 
       const userName = getDecryptedItem("user");
 
@@ -84,7 +95,7 @@ export default function Dashboard({pageNumber,limit}) {
       return;
     }
     fetchProducts(pageNumber, limit);
-  }, [pageNumber, limit]);
+  }, [pageNumber, limit,pathname]);
 
   const handleShow = () => {
     setEditProduct(null);
@@ -289,9 +300,9 @@ export default function Dashboard({pageNumber,limit}) {
           products={products}
         />
         <ProductPagination
-          currentPage={page}
+          currentPage={pageNumber}
           totalPages={totalPage}
-          onPageChange={setPage}
+          onPageChange={handlePageChange}
           limit={8}
           setLoading={setLoading}
         />
