@@ -13,6 +13,8 @@ export default function CreateProductModal({
   isedit,
   setEditProduct,
   setLoading,
+  pageNumber,
+  limit,
 }) {
   const [productName, setProductName] = useState("");
   const [productDescription, setProductDescription] = useState("");
@@ -96,8 +98,11 @@ useEffect(() => {
 
       if (productImage) {
         formData.append("image", productImage);
+      }else{
+        formData.append("existingImage", editProduct?.image);
+
       }
-      // handleClose();
+      handleClose();
         
       let response;
 
@@ -119,8 +124,8 @@ useEffect(() => {
         throw new Error(data.message || "Something went wrong");
       }
 
-      // resetForm();
-      await fetchProducts();
+      resetForm();
+      await fetchProducts(pageNumber,limit);
 
     } catch (error) {
       console.log(error);

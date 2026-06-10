@@ -5,6 +5,7 @@ import { useParams, usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { CPlaceholder } from "@coreui/react";
 import { useCounterStore } from "../../../../stores/useCounterStore.ts";
+import { useSearchParams } from "next/navigation";
 
 export default function DetailsPage() {
   const params = useParams();
@@ -18,6 +19,9 @@ export default function DetailsPage() {
   const [productDetails, setProductDetails] = useState(null);
   const [loading, setLoading] = useState(true);
   const [btnLoading, setBtnLoading] = useState(false);
+  const searchParams = useSearchParams();
+  const pageNumber = Number(searchParams.get("page") || 1);
+  const limit = Number(searchParams.get("limit") || 8);
 
   // ---------------- FETCH PRODUCT ----------------
   useEffect(() => {
@@ -136,7 +140,7 @@ export default function DetailsPage() {
           </h1>
 
           <Link
-            href="/admin/dashboard/"
+            href={`/admin/dashboard?page=${pageNumber}&limit=${limit}`}
             className="flex items-center gap-2 bg-gray-200 hover:bg-gray-300 transition px-4 py-2 rounded-lg"
           >
             Back

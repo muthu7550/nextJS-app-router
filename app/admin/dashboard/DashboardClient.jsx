@@ -303,6 +303,8 @@ export default function Dashboard({pageNumber,limit}) {
           setEditProduct={setEditProduct}
           isedit={isEdit}
           setLoading={setLoading}
+          pageNumber={pageNumber}
+          limit={limit}
         />
       </>
     </Suspense>

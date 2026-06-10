@@ -63,7 +63,6 @@ export async function PUT(
     const description = formData.get("description");
     const price = formData.get("price");
     const itemCount = formData.get("itemCount");
-
     const file = formData.get("image") as File | null;
     const existingImage = formData.get("existingImage");
 

@@ -1,9 +1,9 @@
-// app/admin/dashboard/products/page.js
-import DashboardClient from "./DashboardClient";
+  // app/admin/dashboard/products/page.js
+  import DashboardClient from "./DashboardClient";
 
-export default function Page({ searchParams }) {
-  const pageNumber = Number(searchParams?.page || 1); 
-  const limit = Number(searchParams?.limit || 8);
+  export default function Page({ searchParams }) {
+    const pageNumber = Number(searchParams?.page || 1); 
+    const limit = Number(searchParams?.limit || 8);
 
-  return <DashboardClient pageNumber={pageNumber} limit={limit} />;
-}
+    return <DashboardClient pageNumber={pageNumber} limit={limit} />;
+  }
