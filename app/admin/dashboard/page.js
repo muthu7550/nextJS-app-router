@@ -6,5 +6,5 @@
     const limit = Number(searchParams?.limit || 8);
  console.log(pageNumber,"pp")
  
-    return <DashboardClient pageNumber={pageNumber} limit={limit} />;
+    return <DashboardClient pageNumber={pageNumber} limit={limit}   key={`${pageNumber}-${limit}`} />;
   }
