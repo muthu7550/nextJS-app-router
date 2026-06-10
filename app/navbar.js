@@ -148,7 +148,7 @@ export default function Navbar() {
                 >
                  
                 {link.name}
-                  {link.name === 'Cart' && <span class="bg-danger-soft border border-danger-subtle text-fg-danger-strong text-xs font-medium px-1.5 py-0.5 rounded-full">{Item.items.length}</span>}
+                  {link.name === 'Cart' && <span className="bg-danger-soft border border-danger-subtle text-fg-danger-strong text-xs font-medium px-1.5 py-0.5 rounded-full">{Item.items.length}</span>}
                 </Link>
               </li>
             );
