@@ -18,7 +18,7 @@ export default function PaymentPage() {
   const [utrError, setUtrError] = useState("");
 
   const upiId = "6382429837@pthdfc";
-  const payeeName = "6382429837";
+  const payeeName = "Marimuthu S";
   const phone = "6382429837";
   const user = getDecryptedItem("user");
 
