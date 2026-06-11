@@ -18,7 +18,7 @@ export default function PaymentPage() {
   const [utrError, setUtrError] = useState("");
 
   const upiId = "6382429837@ybl";
-  const payeeName = "NexCart";
+  const payeeName = "6382429837";
   const phone = "6382429837";
   const user = getDecryptedItem("user");
 
@@ -43,26 +43,19 @@ export default function PaymentPage() {
     return acc + price * qty;
   }, 0);
 
-  const createUpiUrl = () => {
-    const params = new URLSearchParams();
-
-    params.set("pa", upiId);
-    params.set("pn", payeeName);
-    params.set("am", Number(totalAmount).toFixed(2));
-    params.set("cu", "INR");
-
-    return `upi://pay?${params.toString()}`;
-  };
-
-  const upiUrl = createUpiUrl();
+  const upiUrl = `upi://pay?pa=${encodeURIComponent(
+    upiId,
+  )}&pn=${encodeURIComponent(payeeName)}&am=${encodeURIComponent(
+    Number(totalAmount).toFixed(2),
+  )}&cu=INR`;
 
   const openUpiApp = () => {
-    if (totalAmount <= 0) {
+    if (!totalAmount || totalAmount <= 0) {
       alert("Invalid amount");
       return;
     }
 
-    window.location.assign(upiUrl);
+    window.location.href = upiUrl;
   };
 
   const handleUtrChange = (e) => {
@@ -145,6 +138,7 @@ export default function PaymentPage() {
       }
 
       clearCart();
+
       localStorage.removeItem("deliveryAddress");
       localStorage.removeItem("counter-storage");
 
@@ -213,6 +207,7 @@ export default function PaymentPage() {
           ].map((app) => (
             <button
               key={app.name}
+              type="button"
               onClick={openUpiApp}
               className="rounded-2xl border bg-gradient-to-br from-gray-50 to-gray-100 px-2 py-3 text-center shadow-sm transition hover:scale-105 active:scale-95"
             >
@@ -227,6 +222,8 @@ export default function PaymentPage() {
         <div className="mt-5 rounded-2xl bg-purple-50 p-3 text-center">
           <p className="text-xs text-purple-500">UPI ID</p>
           <p className="text-sm font-bold text-gray-900">{upiId}</p>
+
+          <p className="mt-2 break-all text-[10px] text-gray-400">{upiUrl}</p>
         </div>
 
         <div className="mt-4">
@@ -259,6 +256,7 @@ export default function PaymentPage() {
         </div>
 
         <button
+          type="button"
           onClick={handlePaymentDone}
           disabled={
             loading || !utrNumber || utrNumber.length !== 12 || !!utrError
