@@ -18,7 +18,7 @@ function ProfileDropdown() {
 
     const parsed =
       typeof user === "string" ? JSON.parse(user) : user;
-
+   
     setParsedUserDetails(parsed);
   }, []);
 
