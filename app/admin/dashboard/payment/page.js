@@ -14,6 +14,7 @@ export default function PaymentPage() {
 
   const [loading, setLoading] = useState(false);
   const [utrNumber, setUtrNumber] = useState("");
+  const [utrError, setUtrError] = useState("");
 
   const upiId = "6382429837@ybl";
   const phone = "6382429837";
@@ -24,6 +25,32 @@ export default function PaymentPage() {
     const qty = Number(item?.itemCount) || 1;
     return acc + price * qty;
   }, 0);
+
+  const upiUrl = `upi://pay?pa=${upiId}&pn=NexCart&am=${totalAmount}&cu=INR`;
+
+  const openUpiApp = () => {
+    window.location.href = upiUrl;
+
+    setTimeout(() => {
+      alert(
+        "If no UPI app opened, please install Google Pay, PhonePe, Paytm, BHIM, or scan the QR code."
+      );
+    }, 2000);
+  };
+
+  const handleUtrChange = (e) => {
+    const value = e.target.value.replace(/\D/g, "");
+
+    setUtrNumber(value);
+
+    if (!value) {
+      setUtrError("");
+    } else if (!/^\d{12}$/.test(value)) {
+      setUtrError("UTR must be 12 digits");
+    } else {
+      setUtrError("");
+    }
+  };
 
   async function resetProductItemCounts() {
     const updateRequests = items.map((item) => {
@@ -48,47 +75,11 @@ export default function PaymentPage() {
       throw new Error("Order placed, but failed to reset some cart counts");
     }
   }
-  const [utrError, setUtrError] = useState("");
-
-  const handleUtrChange = (e) => {
-    const value = e.target.value.replace(/\D/g, "");
-
-    setUtrNumber(value);
-
-    if (!value) {
-      setUtrError("");
-    } else if (!/^\d{12}$/.test(value)) {
-      setUtrError("UTR must be 12 digits");
-    } else {
-      setUtrError("");
-    }
-  };
-
-  const upiUrl = `upi://pay?pa=${upiId}&pn=NexCart&am=${totalAmount}&cu=INR`;
-
-  const openUpiApp = () => {
-    const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
-
-    if (!isMobile) {
-      alert(
-        "UPI apps open only on mobile. Please scan the QR code using your phone.",
-      );
-      return;
-    }
-
-    window.location.href = upiUrl;
-
-    setTimeout(() => {
-      alert(
-        "No UPI app found. Please install Google Pay, PhonePe, Paytm, or BHIM.",
-      );
-    }, 1500);
-  };
 
   async function handlePaymentDone() {
     try {
-      if (!utrNumber.trim()) {
-        alert("Please enter UTR number");
+      if (!/^\d{12}$/.test(utrNumber)) {
+        alert("Please enter a valid 12-digit UTR number");
         return;
       }
 
@@ -115,7 +106,7 @@ export default function PaymentPage() {
           price: Number(item.price),
           quantity: Number(item.itemCount || 1),
           image: item.image,
-          userId: user.id,
+          userId: user?.id,
         })),
 
         payment: {
@@ -185,98 +176,95 @@ export default function PaymentPage() {
     );
   }
 
-return (
-  <div className="flex min-h-screen w-full items-center justify-center bg-gradient-to-br from-indigo-600 via-purple-600 to-pink-500 px-4 py-6">
-    <div className="w-full max-w-sm rounded-[2rem] bg-white p-5 shadow-2xl">
-      <div className="text-center">
-        <p className="text-sm font-semibold text-purple-600">
-          NexCart Payment
-        </p>
-        <h1 className="mt-1 text-3xl font-black text-gray-900">
-          ₹{totalAmount}
-        </h1>
-        <p className="mt-1 text-xs text-gray-500">
-          Pay securely using any UPI app
-        </p>
-      </div>
+  return (
+    <div className="flex min-h-screen w-full items-center justify-center bg-gradient-to-br from-indigo-600 via-purple-600 to-pink-500 px-4 py-6">
+      <div className="w-full max-w-sm rounded-[2rem] bg-white p-5 shadow-2xl">
+        <div className="text-center">
+          <p className="text-sm font-semibold text-purple-600">
+            NexCart Payment
+          </p>
 
-      <div className="mt-5 flex justify-center">
-        <div className="rounded-3xl bg-gradient-to-br from-yellow-300 to-orange-400 p-3 shadow-lg">
-          <div className="rounded-2xl bg-white p-3">
-            <QRCodeCanvas value={upiUrl} size={155} />
+          <h1 className="mt-1 text-3xl font-black text-gray-900">
+            ₹{totalAmount}
+          </h1>
+
+          <p className="mt-1 text-xs text-gray-500">
+            Pay securely using any UPI app
+          </p>
+        </div>
+
+        <div className="mt-5 flex justify-center">
+          <div className="rounded-3xl bg-gradient-to-br from-yellow-300 to-orange-400 p-3 shadow-lg">
+            <div className="rounded-2xl bg-white p-3">
+              <QRCodeCanvas value={upiUrl} size={155} />
+            </div>
           </div>
         </div>
+
+        <div className="mt-5 grid grid-cols-3 gap-3">
+          {[
+            { name: "GPay", emoji: "🟢" },
+            { name: "PhonePe", emoji: "🟣" },
+            { name: "Paytm", emoji: "🔵" },
+            { name: "BHIM", emoji: "🇮🇳" },
+            { name: "Amazon", emoji: "🛒" },
+            { name: "Any UPI", emoji: "💳" },
+          ].map((app) => (
+            <button
+              key={app.name}
+              onClick={openUpiApp}
+              className="rounded-2xl border bg-gradient-to-br from-gray-50 to-gray-100 px-2 py-3 text-center shadow-sm transition hover:scale-105 active:scale-95"
+            >
+              <div className="text-xl">{app.emoji}</div>
+              <div className="mt-1 text-xs font-bold text-gray-800">
+                {app.name}
+              </div>
+            </button>
+          ))}
+        </div>
+
+        <div className="mt-5 rounded-2xl bg-purple-50 p-3 text-center">
+          <p className="text-xs text-purple-500">UPI ID</p>
+          <p className="text-sm font-bold text-gray-900">{upiId}</p>
+        </div>
+
+        <div className="mt-4">
+          <input
+            type="text"
+            value={utrNumber}
+            onChange={handleUtrChange}
+            maxLength={12}
+            placeholder="Enter 12-digit UTR number"
+            className={`w-full rounded-2xl border-2 px-4 py-3 text-sm outline-none transition ${
+              utrError
+                ? "border-red-500"
+                : utrNumber.length === 12
+                  ? "border-green-500"
+                  : "border-gray-200 focus:border-purple-500"
+            }`}
+          />
+
+          {utrError && (
+            <p className="mt-1 text-xs font-semibold text-red-500">
+              {utrError}
+            </p>
+          )}
+
+          {!utrError && utrNumber.length === 12 && (
+            <p className="mt-1 text-xs font-semibold text-green-600">
+              ✓ Valid UTR format
+            </p>
+          )}
+        </div>
+
+        <button
+          onClick={handlePaymentDone}
+          disabled={loading || !utrNumber || utrNumber.length !== 12 || !!utrError}
+          className="mt-4 w-full rounded-2xl bg-gradient-to-r from-purple-600 to-pink-500 py-3 text-sm font-black text-white shadow-lg hover:opacity-90 disabled:cursor-not-allowed disabled:from-gray-300 disabled:to-gray-300"
+        >
+          {loading ? "Processing..." : "Payment Done"}
+        </button>
       </div>
-
-      <div className="mt-5 grid grid-cols-3 gap-3">
-        {[
-          { name: "GPay", emoji: "🟢" },
-          { name: "PhonePe", emoji: "🟣" },
-          { name: "Paytm", emoji: "🔵" },
-          { name: "BHIM", emoji: "🇮🇳" },
-          { name: "Amazon", emoji: "🛒" },
-          { name: "Any UPI", emoji: "💳" },
-        ].map((app) => (
-          <button
-            key={app.name}
-            onClick={openUpiApp}
-            className="rounded-2xl border bg-gradient-to-br from-gray-50 to-gray-100 px-2 py-3 text-center shadow-sm transition hover:scale-105 active:scale-95"
-          >
-            <div className="text-xl">{app.emoji}</div>
-            <div className="mt-1 text-xs font-bold text-gray-800">
-              {app.name}
-            </div>
-          </button>
-        ))}
-      </div>
-
-      <div className="mt-5 rounded-2xl bg-purple-50 p-3 text-center">
-        <p className="text-xs text-purple-500">UPI ID</p>
-        <p className="text-sm font-bold text-gray-900">{upiId}</p>
-      </div>
-
-      <div className="mt-4">
-        <input
-          type="text"
-          value={utrNumber}
-          onChange={handleUtrChange}
-          maxLength={12}
-          placeholder="Enter 12-digit UTR number"
-          className={`w-full rounded-2xl border-2 px-4 py-3 text-sm outline-none transition ${
-            utrError
-              ? "border-red-500"
-              : utrNumber.length === 12
-              ? "border-green-500"
-              : "border-gray-200 focus:border-purple-500"
-          }`}
-        />
-
-        {utrError && (
-          <p className="mt-1 text-xs font-semibold text-red-500">
-            {utrError}
-          </p>
-        )}
-
-        {!utrError && utrNumber.length === 12 && (
-          <p className="mt-1 text-xs font-semibold text-green-600">
-            ✓ Valid UTR format
-          </p>
-        )}
-      </div>
-
-      <button
-        onClick={handlePaymentDone}
-        disabled={
-          loading ||
-          !utrNumber ||
-          utrNumber.length !== 12 ||
-          !!utrError
-        }
-        className="mt-4 w-full rounded-2xl bg-gradient-to-r from-purple-600 to-pink-500 py-3 text-sm font-black text-white shadow-lg hover:opacity-90 disabled:cursor-not-allowed disabled:from-gray-300 disabled:to-gray-300"
-      >
-        {loading ? "Processing..." : "Payment Done"}
-      </button>
     </div>
-  </div>
-);
+  );
 }
