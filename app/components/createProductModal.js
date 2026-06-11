@@ -22,8 +22,6 @@ export default function CreateProductModal({
   const [productImage, setProductImage] = useState(null);
   const [previewImage, setPreviewImage] = useState("");
   const [disable, setIsDisable] = useState(false);
- console.log(editProduct,"editProduct")
- console.log(isedit,"editProduct")
 
 
   useEffect(() => {

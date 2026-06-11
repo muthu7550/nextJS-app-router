@@ -17,6 +17,7 @@ export default function Register() {
     password: ""
   })
   const router = useRouter()
+  const [loading,setLoading] = useState(false)
 
   function handleChange(e){
     const {name,value} = e.target
@@ -29,7 +30,7 @@ export default function Register() {
   }
 
   function handleSubmit(){
-
+setLoading(true)
 fetch('/api/register', {
   method: 'POST',
   headers: {
@@ -39,7 +40,6 @@ fetch('/api/register', {
 })
   .then((res) => res.json())
   .then((data) => {
-    alert("Success.")
      router.push('/auth/login')
 }
 
@@ -62,6 +62,7 @@ fetch('/api/register', {
               id="grid-first-name"
               type="text"
               name="name"
+              required
               placeholder="Jane"
               onChange={(e)=>handleChange(e)}
             />
@@ -81,6 +82,7 @@ fetch('/api/register', {
               class="appearance-none block w-full bg-gray-200 text-gray-700 border border-gray-200 rounded py-3 px-4 leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
               id="grid-email"
               type="email"
+              required
               name='email'
               placeholder="Sample@gmail.com"
               onChange={(e)=>handleChange(e)}
@@ -99,6 +101,7 @@ fetch('/api/register', {
               class="appearance-none block w-full bg-gray-200 text-gray-700 border border-gray-200 rounded py-3 px-4 mb-3 leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
               id="grid-password"
               type="password"
+              required
               name='password'
               placeholder="******************"
               onChange={(e)=>handleChange(e)}
@@ -115,7 +118,7 @@ fetch('/api/register', {
                 href="/admin/dashboard"
                 className="text-blue-600 hover:text-blue-800 text-white button-underline"
               > */}
-                Register
+                {loading ? "Registering" : "Register"}
               {/* </Link> */}
             </button>
             <Link

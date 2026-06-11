@@ -170,7 +170,7 @@ export default function Dashboard({pageNumber,limit}) {
               </div>{" "}
               {/* Filter Button */}{" "}
               <button
-                className="flex items-center gap-2 rounded-xl bg-blue-600 px-4 py-2 text-sm font-medium text-white shadow-sm transition-all hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 active:scale-[0.98]"
+                className="flex items-center gap-2 rounded bg-blue-600 px-4 py-2 text-sm font-medium text-white shadow-sm transition-all hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 active:scale-[0.98]"
                 onClick={() => setFilterDrawerShow(true)}
               >
                 {" "}

@@ -9,7 +9,6 @@ export default function GlobalError({
   reset: () => void
 }) {
 
-    alert(`Global error boundary caught an error: ${error.message}`);
   return (
     <html>
       <body>

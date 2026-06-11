@@ -12,33 +12,42 @@ import {
 import { getDecryptedItem } from "../../../auth/encript";
 
 export default function OrdersPage() {
-  const [orders, setOrders] = useState([]);
+  const [orders, setOrders] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
   const user = getDecryptedItem("user");
-  const [loading, setloading] = useState(true)
+
   useEffect(() => {
     fetchOrders();
-  }, [loading,orders]);
+  }, []);
 
   async function fetchOrders() {
     try {
-      const response = await fetch("/api/orders");
+      setLoading(true);
+
+      const response = await fetch("/api/orders", {
+        cache: "no-store",
+      });
+
       const result = await response.json();
 
-      if (response.ok) {
-        const filteredOrders = result.data.filter(order =>
-          order.products.some(item => item.userId === user.id)
-        );
-        setloading(false)
-
-        setOrders(filteredOrders);
-
+      if (!response.ok) {
+        throw new Error(result.error || "Failed to fetch orders");
       }
+
+      const filteredOrders = result.data.filter((order: any) =>
+        order.products?.some((item: any) => item.userId === user?.id)
+      );
+
+      setOrders(filteredOrders);
     } catch (error) {
       console.error("Fetch orders error:", error);
+    } finally {
+      setLoading(false);
     }
   }
 
-  async function handleDeleteOrder(orderId) {
+  async function handleDeleteOrder(orderId: string) {
     const confirmDelete = confirm(
       "Are you sure you want to delete this order?"
     );
@@ -59,9 +68,9 @@ export default function OrdersPage() {
       if (!response.ok) {
         throw new Error(result.error || "Delete failed");
       }
-      await fetchOrders()
 
-      // setOrders((prev) => prev.filter((order) => order._id !== orderId));
+      setOrders((prev) => prev.filter((order) => order._id !== orderId));
+
       alert("Order deleted successfully");
     } catch (error) {
       console.error("Delete error:", error);
@@ -82,28 +91,6 @@ export default function OrdersPage() {
                 <div className="h-5 w-48 animate-pulse rounded bg-slate-200" />
                 <div className="h-3 w-32 animate-pulse rounded bg-slate-200" />
               </div>
-
-              <div className="flex gap-2">
-                <div className="h-8 w-24 animate-pulse rounded-full bg-slate-200" />
-                <div className="h-8 w-28 animate-pulse rounded-full bg-slate-200" />
-                <div className="h-8 w-20 animate-pulse rounded-lg bg-slate-200" />
-              </div>
-            </div>
-
-            <div className="grid gap-4 p-4 lg:grid-cols-3">
-              {[1, 2, 3].map((card) => (
-                <div key={card} className="rounded-xl border bg-white p-4">
-                  <div className="mb-4 h-5 w-40 animate-pulse rounded bg-slate-200" />
-
-                  <div className="space-y-3">
-                    <div className="h-4 w-full animate-pulse rounded bg-slate-200" />
-                    <div className="h-4 w-5/6 animate-pulse rounded bg-slate-200" />
-                    <div className="h-4 w-4/6 animate-pulse rounded bg-slate-200" />
-                  </div>
-
-                  <div className="mt-4 h-16 animate-pulse rounded-xl bg-slate-200" />
-                </div>
-              ))}
             </div>
           </div>
         ))}
@@ -125,15 +112,10 @@ export default function OrdersPage() {
           <OrdersSkeleton />
         ) : orders.length === 0 ? (
           <div className="rounded-2xl border bg-white p-10 text-center shadow-sm">
-            <div className="mx-auto mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-yellow-50">
-              <Package className="h-10 w-10 text-yellow-600" />
-            </div>
-
-            <h2 className="text-xl font-bold text-slate-900">No orders found</h2>
-
-            <p className="mt-2 text-sm text-slate-500">
-              Orders will appear here after successful checkout.
-            </p>
+            <Package className="mx-auto h-10 w-10 text-yellow-600" />
+            <h2 className="mt-4 text-xl font-bold text-slate-900">
+              No orders found
+            </h2>
           </div>
         ) : (
           <div className="grid gap-5">
@@ -155,7 +137,6 @@ export default function OrdersPage() {
                           Order #{order._id}
                         </h2>
                       </div>
-
                       <p className="mt-1 text-xs text-slate-500">
                         Created: {createdDate}
                       </p>
@@ -198,7 +179,6 @@ export default function OrdersPage() {
                         <p className="text-xs font-semibold text-green-700">
                           Total Amount
                         </p>
-
                         <div className="mt-1 flex items-center text-2xl font-bold text-green-800">
                           <IndianRupee className="h-5 w-5" />
                           {Number(order.totalAmount || 0).toFixed(2)}
@@ -218,9 +198,7 @@ export default function OrdersPage() {
                         <p className="font-semibold">
                           {order.address?.street || "No street"}
                         </p>
-                        <p className="mt-1">
-                          {order.address?.city || "No city"}
-                        </p>
+                        <p className="mt-1">{order.address?.city || "No city"}</p>
                         <p className="mt-1">
                           Pincode: {order.address?.pincode || "N/A"}
                         </p>
@@ -230,13 +208,11 @@ export default function OrdersPage() {
                     <div className="rounded-xl border bg-white p-4">
                       <div className="mb-3 flex items-center gap-2">
                         <Package className="h-5 w-5 text-purple-700" />
-                        <h3 className="font-bold text-slate-900">
-                          Products
-                        </h3>
+                        <h3 className="font-bold text-slate-900">Products</h3>
                       </div>
 
                       <div className="space-y-3">
-                        {order.products?.map((item) => {
+                        {order.products?.map((item: any) => {
                           const itemTotal =
                             Number(item.price || 0) *
                             Number(item.quantity || 1);
@@ -257,7 +233,6 @@ export default function OrdersPage() {
                                   <p className="line-clamp-1 text-sm font-bold text-slate-900">
                                     {item.name}
                                   </p>
-
                                   <p className="text-xs text-slate-500">
                                     ₹{item.price} × {item.quantity}
                                   </p>
@@ -283,7 +258,7 @@ export default function OrdersPage() {
   );
 }
 
-function InfoRow({ label, value }) {
+function InfoRow({ label, value }: any) {
   return (
     <div className="mb-2 flex items-start justify-between gap-4 text-sm">
       <span className="text-slate-500">{label}</span>
