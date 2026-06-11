@@ -2,23 +2,40 @@
 
 import { useRouter } from "next/navigation";
 import { QRCodeCanvas } from "qrcode.react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useCounterStore } from "../../../stores/useCounterStore.ts";
 import { getDecryptedItem } from "../../../auth/encript.js";
 
 export default function PaymentPage() {
   const router = useRouter();
 
-  const items = useCounterStore((state) => state.items);
+  const storeItems = useCounterStore((state) => state.items);
   const clearCart = useCounterStore((state) => state.clearCart);
 
+  const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(false);
   const [utrNumber, setUtrNumber] = useState("");
   const [utrError, setUtrError] = useState("");
 
   const upiId = "6382429837@ybl";
+  const payeeName = "NexCart";
   const phone = "6382429837";
   const user = getDecryptedItem("user");
+
+  useEffect(() => {
+    if (storeItems?.length > 0) {
+      setItems(storeItems);
+      return;
+    }
+
+    try {
+      const storage = JSON.parse(localStorage.getItem("counter-storage"));
+      const localItems = storage?.state?.items || [];
+      setItems(localItems);
+    } catch {
+      setItems([]);
+    }
+  }, [storeItems]);
 
   const totalAmount = items.reduce((acc, item) => {
     const price = Number(item?.price) || 0;
@@ -26,20 +43,26 @@ export default function PaymentPage() {
     return acc + price * qty;
   }, 0);
 
-  const upiUrl = `upi://pay?pa=${encodeURIComponent(
-    upiId
-  )}&pn=${encodeURIComponent("NexCart")}&am=${Number(totalAmount).toFixed(
-    2
-  )}&cu=INR&tn=${encodeURIComponent("Order Payment")}`;
+  const createUpiUrl = () => {
+    const params = new URLSearchParams();
+
+    params.set("pa", upiId);
+    params.set("pn", payeeName);
+    params.set("am", Number(totalAmount).toFixed(2));
+    params.set("cu", "INR");
+
+    return `upi://pay?${params.toString()}`;
+  };
+
+  const upiUrl = createUpiUrl();
 
   const openUpiApp = () => {
-    window.location.href = upiUrl;
+    if (totalAmount <= 0) {
+      alert("Invalid amount");
+      return;
+    }
 
-    setTimeout(() => {
-      alert(
-        "If no UPI app opened, please install Google Pay, PhonePe, Paytm, BHIM, or scan the QR code."
-      );
-    }, 2000);
+    window.location.assign(upiUrl);
   };
 
   const handleUtrChange = (e) => {
@@ -55,30 +78,6 @@ export default function PaymentPage() {
       setUtrError("");
     }
   };
-
-  async function resetProductItemCounts() {
-    const updateRequests = items.map((item) => {
-      const formData = new FormData();
-
-      formData.append("name", item.name || "");
-      formData.append("description", item.description || "");
-      formData.append("price", String(item.price || 0));
-      formData.append("itemCount", "0");
-      formData.append("existingImage", item.image || "");
-
-      return fetch(`/api/${item._id}`, {
-        method: "PUT",
-        body: formData,
-      });
-    });
-
-    const responses = await Promise.all(updateRequests);
-    const failed = responses.find((response) => !response.ok);
-
-    if (failed) {
-      throw new Error("Order placed, but failed to reset some cart counts");
-    }
-  }
 
   async function handlePaymentDone() {
     try {
@@ -145,9 +144,7 @@ export default function PaymentPage() {
         throw new Error(result.error || "Order failed");
       }
 
-      await resetProductItemCounts();
       clearCart();
-
       localStorage.removeItem("deliveryAddress");
       localStorage.removeItem("counter-storage");
 
@@ -189,19 +186,13 @@ export default function PaymentPage() {
           </p>
 
           <h1 className="mt-1 text-3xl font-black text-gray-900">
-            ₹{totalAmount}
+            ₹{Number(totalAmount).toFixed(2)}
           </h1>
 
           <p className="mt-1 text-xs text-gray-500">
             Pay securely using any UPI app
           </p>
         </div>
-
-        {totalAmount > 100000 && (
-          <p className="mt-3 rounded-xl bg-red-50 p-3 text-center text-xs font-bold text-red-600">
-            Amount exceeds normal UPI limit. Please reduce cart amount.
-          </p>
-        )}
 
         <div className="mt-5 flex justify-center">
           <div className="rounded-3xl bg-gradient-to-br from-yellow-300 to-orange-400 p-3 shadow-lg">
@@ -222,9 +213,8 @@ export default function PaymentPage() {
           ].map((app) => (
             <button
               key={app.name}
-              disabled={totalAmount > 100000}
               onClick={openUpiApp}
-              className="rounded-2xl border bg-gradient-to-br from-gray-50 to-gray-100 px-2 py-3 text-center shadow-sm transition hover:scale-105 active:scale-95 disabled:cursor-not-allowed disabled:opacity-50"
+              className="rounded-2xl border bg-gradient-to-br from-gray-50 to-gray-100 px-2 py-3 text-center shadow-sm transition hover:scale-105 active:scale-95"
             >
               <div className="text-xl">{app.emoji}</div>
               <div className="mt-1 text-xs font-bold text-gray-800">
@@ -250,8 +240,8 @@ export default function PaymentPage() {
               utrError
                 ? "border-red-500"
                 : utrNumber.length === 12
-                ? "border-green-500"
-                : "border-gray-200 focus:border-purple-500"
+                  ? "border-green-500"
+                  : "border-gray-200 focus:border-purple-500"
             }`}
           />
 
