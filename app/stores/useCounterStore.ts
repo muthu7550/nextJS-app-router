@@ -6,15 +6,15 @@ export const useCounterStore = create(
     (set) => ({
       items: [],
 
-      addItem: (item) =>
-        set((state) => {
+      addItem: (item:any) =>
+        set((state:any) => {
           const existingItem = state.items.find(
             (product:any) => product._id === item._id
           );
 
           if (existingItem) {
             return {
-              items: state.items.map((product) =>
+              items: state.items.map((product:any) =>
                 product._id === item._id ? item : product
               ),
             };
@@ -25,7 +25,7 @@ export const useCounterStore = create(
           };
         }),
 
-      removeItem: (id) =>
+      removeItem: (id:any) =>
         set((state:any) => ({
           items: state.items.filter((item:any) => item._id !== id),
         })),
