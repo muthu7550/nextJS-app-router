@@ -26,7 +26,11 @@ export default function PaymentPage() {
     return acc + price * qty;
   }, 0);
 
- const upiUrl = `upi://pay?pa=${upiId}&pn=NexCart&cu=INR&tn=OrderPayment`;
+  const upiUrl = `upi://pay?pa=${encodeURIComponent(
+    upiId
+  )}&pn=${encodeURIComponent("NexCart")}&am=${Number(totalAmount).toFixed(
+    2
+  )}&cu=INR&tn=${encodeURIComponent("Order Payment")}`;
 
   const openUpiApp = () => {
     window.location.href = upiUrl;
@@ -193,6 +197,12 @@ export default function PaymentPage() {
           </p>
         </div>
 
+        {totalAmount > 100000 && (
+          <p className="mt-3 rounded-xl bg-red-50 p-3 text-center text-xs font-bold text-red-600">
+            Amount exceeds normal UPI limit. Please reduce cart amount.
+          </p>
+        )}
+
         <div className="mt-5 flex justify-center">
           <div className="rounded-3xl bg-gradient-to-br from-yellow-300 to-orange-400 p-3 shadow-lg">
             <div className="rounded-2xl bg-white p-3">
@@ -214,7 +224,7 @@ export default function PaymentPage() {
               key={app.name}
               disabled={totalAmount > 100000}
               onClick={openUpiApp}
-              className="rounded-2xl border bg-gradient-to-br from-gray-50 to-gray-100 px-2 py-3 text-center shadow-sm transition hover:scale-105 active:scale-95"
+              className="rounded-2xl border bg-gradient-to-br from-gray-50 to-gray-100 px-2 py-3 text-center shadow-sm transition hover:scale-105 active:scale-95 disabled:cursor-not-allowed disabled:opacity-50"
             >
               <div className="text-xl">{app.emoji}</div>
               <div className="mt-1 text-xs font-bold text-gray-800">
@@ -240,8 +250,8 @@ export default function PaymentPage() {
               utrError
                 ? "border-red-500"
                 : utrNumber.length === 12
-                  ? "border-green-500"
-                  : "border-gray-200 focus:border-purple-500"
+                ? "border-green-500"
+                : "border-gray-200 focus:border-purple-500"
             }`}
           />
 
@@ -260,7 +270,9 @@ export default function PaymentPage() {
 
         <button
           onClick={handlePaymentDone}
-          disabled={loading || !utrNumber || utrNumber.length !== 12 || !!utrError}
+          disabled={
+            loading || !utrNumber || utrNumber.length !== 12 || !!utrError
+          }
           className="mt-4 w-full rounded-2xl bg-gradient-to-r from-purple-600 to-pink-500 py-3 text-sm font-black text-white shadow-lg hover:opacity-90 disabled:cursor-not-allowed disabled:from-gray-300 disabled:to-gray-300"
         >
           {loading ? "Processing..." : "Payment Done"}
