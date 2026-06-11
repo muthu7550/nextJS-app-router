@@ -26,7 +26,7 @@ export default function PaymentPage() {
     return acc + price * qty;
   }, 0);
 
-  const upiUrl = `upi://pay?pa=${upiId}&pn=NexCart&am=${totalAmount}&cu=INR`;
+ const upiUrl = `upi://pay?pa=${upiId}&pn=NexCart&cu=INR&tn=OrderPayment`;
 
   const openUpiApp = () => {
     window.location.href = upiUrl;
@@ -212,6 +212,7 @@ export default function PaymentPage() {
           ].map((app) => (
             <button
               key={app.name}
+              disabled={totalAmount > 100000}
               onClick={openUpiApp}
               className="rounded-2xl border bg-gradient-to-br from-gray-50 to-gray-100 px-2 py-3 text-center shadow-sm transition hover:scale-105 active:scale-95"
             >
