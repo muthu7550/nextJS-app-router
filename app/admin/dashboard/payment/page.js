@@ -16,11 +16,32 @@ export default function PaymentPage() {
   const [loading, setLoading] = useState(false);
   const [utrNumber, setUtrNumber] = useState("");
   const [utrError, setUtrError] = useState("");
+  const [showPendingModal, setShowPendingModal] = useState(false);
+  const [countdown, setCountdown] = useState(5);
 
   const upiId = "6382429837@pthdfc";
   const payeeName = "Marimuthu S";
   const phone = "6382429837";
   const user = getDecryptedItem("user");
+
+  const goToOrders = () => {
+    router.push("/admin/dashboard/orders");
+  };
+
+  useEffect(() => {
+    if (!showPendingModal) return;
+
+    if (countdown === 0) {
+      goToOrders();
+      return;
+    }
+
+    const timer = setTimeout(() => {
+      setCountdown((prev) => prev - 1);
+    }, 1000);
+
+    return () => clearTimeout(timer);
+  }, [showPendingModal, countdown]);
 
   useEffect(() => {
     if (storeItems?.length > 0) {
@@ -49,27 +70,13 @@ export default function PaymentPage() {
     Number(totalAmount).toFixed(2),
   )}&cu=INR`;
 
-  const openUpiApp = () => {
-    if (!totalAmount || totalAmount <= 0) {
-      alert("Invalid amount");
-      return;
-    }
-
-    window.location.href = upiUrl;
-  };
-
   const handleUtrChange = (e) => {
     const value = e.target.value.replace(/\D/g, "");
-
     setUtrNumber(value);
 
-    if (!value) {
-      setUtrError("");
-    } else if (!/^\d{12}$/.test(value)) {
-      setUtrError("UTR must be 12 digits");
-    } else {
-      setUtrError("");
-    }
+    if (!value) setUtrError("");
+    else if (!/^\d{12}$/.test(value)) setUtrError("UTR must be 12 digits");
+    else setUtrError("");
   };
 
   async function handlePaymentDone() {
@@ -138,12 +145,11 @@ export default function PaymentPage() {
       }
 
       clearCart();
-
       localStorage.removeItem("deliveryAddress");
       localStorage.removeItem("counter-storage");
 
-      alert("Order placed successfully");
-      router.push("/admin/dashboard/orders");
+      setShowPendingModal(true);
+      setCountdown(5);
     } catch (error) {
       console.error("Order error:", error);
       alert(error.message || "Something went wrong");
@@ -152,17 +158,17 @@ export default function PaymentPage() {
     }
   }
 
-  if (items.length === 0) {
+  if (items.length === 0 && !showPendingModal) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-gray-100 px-4">
-        <div className="w-full max-w-sm rounded-2xl bg-white p-6 text-center shadow-lg">
-          <h1 className="mb-3 text-xl font-bold text-gray-800">
+      <div className="flex min-h-screen items-center justify-center bg-slate-100 px-4">
+        <div className="w-full max-w-sm rounded-3xl bg-white p-6 text-center shadow-xl">
+          <h1 className="mb-3 text-xl font-black text-slate-800">
             No cart items found
           </h1>
 
           <button
             onClick={() => router.push("/admin/dashboard/products")}
-            className="rounded-lg bg-black px-5 py-2 text-white"
+            className="rounded-xl bg-slate-900 px-5 py-2.5 text-sm font-bold text-white"
           >
             Go to Products
           </button>
@@ -172,100 +178,118 @@ export default function PaymentPage() {
   }
 
   return (
-    <div className="flex min-h-screen w-full items-center justify-center bg-gradient-to-br from-indigo-600 via-purple-600 to-pink-500 px-4 py-6">
-      <div className="w-full max-w-sm rounded-[2rem] bg-white p-5 shadow-2xl">
-        <div className="text-center">
-          <p className="text-sm font-semibold text-purple-600">
-            NexCart Payment
-          </p>
+    <>
+      <div className="flex min-h-screen w-full items-center justify-center bg-slate-100 px-4 py-8">
+        <div className="w-full max-w-md rounded-[2rem] border border-slate-200 bg-white p-6 shadow-2xl">
+          <div className="text-center">
+            <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-2xl bg-slate-900 text-2xl text-white">
+              ₹
+            </div>
 
-          <h1 className="mt-1 text-3xl font-black text-gray-900">
-            ₹{Number(totalAmount).toFixed(2)}
-          </h1>
+            <p className="text-sm font-bold uppercase tracking-wide text-slate-500">
+              NexCart Secure Payment
+            </p>
 
-          <p className="mt-1 text-xs text-gray-500">
-            Pay securely using any UPI app
-          </p>
-        </div>
+            <h1 className="mt-2 text-4xl font-black text-slate-950">
+              ₹{Number(totalAmount).toFixed(2)}
+            </h1>
 
-        <div className="mt-5 flex justify-center">
-          <div className="rounded-3xl bg-gradient-to-br from-yellow-300 to-orange-400 p-3 shadow-lg">
-            <div className="rounded-2xl bg-white p-3">
-              <QRCodeCanvas value={upiUrl} size={155} />
+            <p className="mt-2 text-sm text-slate-500">
+              Scan QR or pay using any UPI app
+            </p>
+          </div>
+
+          <div className="mt-6 flex justify-center">
+            <div className="rounded-[2rem] bg-slate-950 p-4 shadow-xl">
+              <div className="rounded-3xl bg-white p-4">
+                <QRCodeCanvas value={upiUrl} size={180} />
+              </div>
             </div>
           </div>
-        </div>
 
-        <div className="mt-5 grid grid-cols-3 gap-3">
-          {[
-            { name: "GPay", emoji: "🟢" },
-            { name: "PhonePe", emoji: "🟣" },
-            { name: "Paytm", emoji: "🔵" },
-            { name: "BHIM", emoji: "🇮🇳" },
-            { name: "Amazon", emoji: "🛒" },
-            { name: "Any UPI", emoji: "💳" },
-          ].map((app) => (
-            <button
-              key={app.name}
-              type="button"
-              onClick={openUpiApp}
-              className="rounded-2xl border bg-gradient-to-br from-gray-50 to-gray-100 px-2 py-3 text-center shadow-sm transition hover:scale-105 active:scale-95"
-            >
-              <div className="text-xl">{app.emoji}</div>
-              <div className="mt-1 text-xs font-bold text-gray-800">
-                {app.name}
-              </div>
-            </button>
-          ))}
-        </div>
-
-        <div className="mt-5 rounded-2xl bg-purple-50 p-3 text-center">
-          <p className="text-xs text-purple-500">UPI ID</p>
-          <p className="text-sm font-bold text-gray-900">{upiId}</p>
-
-          <p className="mt-2 break-all text-[10px] text-gray-400">{upiUrl}</p>
-        </div>
-
-        <div className="mt-4">
-          <input
-            type="text"
-            value={utrNumber}
-            onChange={handleUtrChange}
-            maxLength={12}
-            placeholder="Enter 12-digit UTR number"
-            className={`w-full rounded-2xl border-2 px-4 py-3 text-sm outline-none transition ${
-              utrError
-                ? "border-red-500"
-                : utrNumber.length === 12
-                  ? "border-green-500"
-                  : "border-gray-200 focus:border-purple-500"
-            }`}
-          />
-
-          {utrError && (
-            <p className="mt-1 text-xs font-semibold text-red-500">
-              {utrError}
+          <div className="mt-6 rounded-3xl border border-slate-200 bg-slate-50 p-4 text-center">
+            <p className="text-xs font-bold uppercase text-slate-400">UPI ID</p>
+            <p className="mt-1 text-base font-black text-slate-900">{upiId}</p>
+            <p className="mt-2 break-all text-[11px] text-slate-400">
+              {upiUrl}
             </p>
-          )}
+          </div>
 
-          {!utrError && utrNumber.length === 12 && (
-            <p className="mt-1 text-xs font-semibold text-green-600">
-              ✓ Valid UTR format
-            </p>
-          )}
+          <div className="mt-5">
+            <input
+              type="text"
+              value={utrNumber}
+              onChange={handleUtrChange}
+              maxLength={12}
+              placeholder="Enter 12-digit UTR number"
+              className={`w-full rounded-2xl border-2 px-4 py-3 text-sm font-semibold outline-none transition ${
+                utrError
+                  ? "border-red-500 bg-red-50"
+                  : utrNumber.length === 12
+                    ? "border-green-500 bg-green-50"
+                    : "border-slate-200 bg-white focus:border-slate-900"
+              }`}
+            />
+
+            {utrError && (
+              <p className="mt-2 text-xs font-bold text-red-500">{utrError}</p>
+            )}
+
+            {!utrError && utrNumber.length === 12 && (
+              <p className="mt-2 text-xs font-bold text-green-600">
+                ✓ Valid UTR format
+              </p>
+            )}
+          </div>
+
+          <button
+            type="button"
+            onClick={handlePaymentDone}
+            disabled={
+              loading || !utrNumber || utrNumber.length !== 12 || !!utrError
+            }
+            className="mt-5 w-full rounded-2xl bg-slate-950 py-3.5 text-sm font-black text-white shadow-lg transition hover:scale-[1.01] hover:bg-slate-800 disabled:cursor-not-allowed disabled:bg-slate-300"
+          >
+            {loading ? "Processing..." : "Payment Done"}
+          </button>
         </div>
-
-        <button
-          type="button"
-          onClick={handlePaymentDone}
-          disabled={
-            loading || !utrNumber || utrNumber.length !== 12 || !!utrError
-          }
-          className="mt-4 w-full rounded-2xl bg-gradient-to-r from-purple-600 to-pink-500 py-3 text-sm font-black text-white shadow-lg hover:opacity-90 disabled:cursor-not-allowed disabled:from-gray-300 disabled:to-gray-300"
-        >
-          {loading ? "Processing..." : "Payment Done"}
-        </button>
       </div>
-    </div>
+
+      {showPendingModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-4 backdrop-blur-sm">
+          <div className="w-full max-w-sm overflow-hidden rounded-[2rem] bg-white p-6 text-center shadow-2xl">
+            <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-amber-100">
+              <div className="h-12 w-12 animate-spin rounded-full border-4 border-amber-400 border-t-transparent" />
+            </div>
+
+            <h2 className="mt-5 text-2xl font-black text-slate-950">
+              Payment Pending
+            </h2>
+
+            <p className="mt-2 text-sm leading-6 text-slate-500">
+              Your order has been placed successfully. Payment verification is
+              under process and may take up to{" "}
+              <span className="font-black text-slate-900">2 hours</span>.
+            </p>
+
+            <div className="mt-5 rounded-2xl bg-slate-100 px-4 py-3">
+              <p className="text-xs font-bold uppercase text-slate-400">
+                Redirecting to orders in
+              </p>
+              <p className="mt-1 text-3xl font-black text-slate-950">
+                {countdown}s
+              </p>
+            </div>
+
+            <button
+              onClick={goToOrders}
+              className="mt-5 w-full rounded-2xl py-3 text-sm font-black shadow-lg hover:bg-amber-100"
+            >
+              Go to Orders
+            </button>
+          </div>
+        </div>
+      )}
+    </>
   );
 }
