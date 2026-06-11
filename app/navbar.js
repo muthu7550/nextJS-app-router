@@ -15,8 +15,9 @@ function ProfileDropdown() {
 
   useEffect(() => {
     const user = getDecryptedItem("user");
+    
 
-    const parsed =
+    const parsed =  
       typeof user === "string" ? JSON.parse(user) : user;
    
     setParsedUserDetails(parsed);
