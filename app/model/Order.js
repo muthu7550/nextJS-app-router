@@ -9,6 +9,7 @@ const orderSchema = new mongoose.Schema(
         price: Number,
         quantity: Number,
         image: String,
+        userId: String
       },
     ],
 
@@ -23,7 +24,6 @@ const orderSchema = new mongoose.Schema(
         unique: true,
       },
     },
-
     address: {
       street: String,
       city: String,

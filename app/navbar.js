@@ -106,6 +106,10 @@ export default function Navbar() {
       name: "Cart",
       href: "/admin/dashboard/ordersummary",
     },
+    {
+      name: "Orders",
+      href: "/admin/dashboard/orders",
+    },
   ];
 
   return (

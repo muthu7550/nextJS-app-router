@@ -69,15 +69,6 @@ export default function Login() {
     }
   }
 
-  // Prevent login form flash
-  if (isLoading) {
-    return (
-      <div className="w-xl mt-10 mx-auto text-center">
-        Loading...
-      </div>
-    );
-  }
-
   return (
     <div className="w-xl mt-10 mx-auto">
       <form
@@ -133,7 +124,7 @@ export default function Login() {
             className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
             type="submit"
           >
-            Sign In
+           {isLoading ? "Signing in" : "Sign in"}
           </button>
 
           <Link

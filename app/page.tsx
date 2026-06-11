@@ -32,7 +32,7 @@ export default function Home() {
 
   return (
     <div
-      className="min-h-screen d-flex align-items-center justify-content-center"
+      className="min-h-screen flex justify-center items-center"
       style={{
         background:
           "linear-gradient(135deg, #0f172a 0%, #1e3a8a 50%, #312e81 100%)",

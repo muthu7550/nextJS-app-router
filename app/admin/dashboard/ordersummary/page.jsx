@@ -20,6 +20,7 @@ export default function OrderSummary() {
 
   const [hydrated, setHydrated] = useState(false);
   const [showAddressModal, setShowAddressModal] = useState(false);
+  const [loadingItemId, setLoadingItemId] = useState(null);
 
   const [address, setAddress] = useState({
     street: "",
@@ -31,9 +32,7 @@ export default function OrderSummary() {
     setHydrated(true);
   }, []);
 
-  const cartItems = items.filter((item) => {
-    return Number(item?.itemCount) > 0;
-  });
+  const cartItems = items.filter((item) => Number(item?.itemCount) > 0);
 
   const grandTotal = cartItems.reduce((acc, item) => {
     const price = Number(item?.price) || 0;
@@ -59,7 +58,6 @@ export default function OrderSummary() {
       !address.city.trim() ||
       !address.pincode.trim()
     ) {
-      alert("Please enter full address");
       return;
     }
 
@@ -67,39 +65,67 @@ export default function OrderSummary() {
     router.push("/admin/dashboard/payment");
   };
 
+  const updateProductCount = async (product, newCount) => {
+    try {
+      if (!product?._id) return;
+      if (newCount < 0) return;
+
+      setLoadingItemId(product._id);
+
+      const formData = new FormData();
+
+      formData.append("name", product.name || "");
+      formData.append("description", product.description || "");
+      formData.append("price", product.price || 0);
+      formData.append("itemCount", newCount);
+
+      formData.append("existingImage", product.image || "");
+
+      if (product.image instanceof File || product.image instanceof Blob) {
+        formData.append("image", product.image);
+      }
+
+      const response = await fetch(`/api/${product._id}`, {
+        method: "PUT",
+        body: formData,
+      });
+
+      if (!response.ok) {
+        throw new Error("Network response was not ok");
+      }
+
+      const data = await response.json();
+      const updatedProduct = data.data;
+
+      if (newCount <= 0) {
+        removeItem(updatedProduct?._id || product._id);
+      } else {
+        addItem(updatedProduct);
+      }
+    } catch (error) {
+      console.error("Error updating product:", error);
+    } finally {
+      setLoadingItemId(null);
+    }
+  };
+
   const handleIncrease = (item) => {
-    addItem({
-      ...item,
-      itemCount: (Number(item?.itemCount) || 0) + 1,
-    });
+    const currentCount = Number(item?.itemCount) || 0;
+    updateProductCount(item, currentCount + 1);
   };
 
   const handleDecrease = (item) => {
-    const qty = Number(item?.itemCount) || 1;
-
-    if (qty <= 1) {
-      removeItem(item?._id);
-      return;
-    }
-
-    addItem({
-      ...item,
-      itemCount: qty - 1,
-    });
+    const currentCount = Number(item?.itemCount) || 1;
+    updateProductCount(item, currentCount - 1);
   };
 
   const handleQuantityChange = (item, value) => {
     const qty = Number(value);
+    updateProductCount(item, qty);
+  };
 
-    if (qty <= 0) {
-      removeItem(item?._id);
-      return;
-    }
-
-    addItem({
-      ...item,
-      itemCount: qty,
-    });
+  const handleRemove = (item) => {
+    updateProductCount(item, 0);
   };
 
   if (!hydrated) {
@@ -154,9 +180,7 @@ export default function OrderSummary() {
         <div className="grid gap-4 lg:grid-cols-[1fr_330px]">
           <section className="rounded-lg border bg-white">
             <div className="flex items-center justify-between border-b px-4 py-3">
-              <h1 className="text-xl font-bold text-gray-900">
-                Shopping Cart
-              </h1>
+              <h1 className="text-xl font-bold text-gray-900">Shopping Cart</h1>
 
               <span className="text-sm text-gray-500">
                 {totalItems} item{totalItems > 1 ? "s" : ""}
@@ -168,6 +192,7 @@ export default function OrderSummary() {
                 const price = Number(item?.price) || 0;
                 const quantity = Number(item?.itemCount) || 1;
                 const total = price * quantity;
+                const isLoading = loadingItemId === item?._id;
 
                 return (
                   <div
@@ -198,6 +223,7 @@ export default function OrderSummary() {
                       <div className="mt-2 flex flex-wrap items-center gap-2">
                         <select
                           value={quantity}
+                          disabled={isLoading}
                           onChange={(e) =>
                             handleQuantityChange(item, e.target.value)
                           }
@@ -211,22 +237,25 @@ export default function OrderSummary() {
                         </select>
 
                         <button
+                          disabled={isLoading}
                           onClick={() => handleDecrease(item)}
-                          className="rounded-md border px-2 py-1 text-xs font-bold hover:bg-gray-100"
+                          className="rounded-md border px-2 py-1 text-xs font-bold hover:bg-gray-100 disabled:opacity-50"
                         >
                           −
                         </button>
 
                         <button
+                          disabled={isLoading}
                           onClick={() => handleIncrease(item)}
-                          className="rounded-md border px-2 py-1 text-xs font-bold hover:bg-gray-100"
+                          className="rounded-md border px-2 py-1 text-xs font-bold hover:bg-gray-100 disabled:opacity-50"
                         >
                           +
                         </button>
 
                         <button
-                          onClick={() => removeItem(item?._id)}
-                          className="flex items-center gap-1 text-xs font-semibold text-red-600 hover:underline"
+                          disabled={isLoading}
+                          onClick={() => handleRemove(item)}
+                          className="flex items-center gap-1 text-xs font-semibold text-red-600 hover:underline disabled:opacity-50"
                         >
                           <Trash2 className="h-3 w-3" />
                           Remove
@@ -290,61 +319,72 @@ export default function OrderSummary() {
         </div>
       </div>
 
-      {showAddressModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4">
-          <div className="w-full max-w-md rounded-xl bg-white p-5 shadow-lg">
-            <h2 className="text-xl font-bold text-gray-900">
-              Enter Delivery Address
-            </h2>
+   {showAddressModal && (
+  <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4">
+    <div className="w-full max-w-md rounded-xl bg-white p-5 shadow-lg">
+      <h2 className="text-xl font-bold text-gray-900">
+        Enter Delivery Address
+      </h2>
 
-            <input
-              type="text"
-              value={address.street}
-              onChange={(e) =>
-                setAddress({ ...address, street: e.target.value })
-              }
-              placeholder="Street address"
-              className="mt-4 w-full rounded-lg border px-3 py-2 text-sm outline-none"
-            />
+      <input
+        type="text"
+        value={address.street}
+        onChange={(e) =>
+          setAddress({ ...address, street: e.target.value })
+        }
+        placeholder="Street address"
+        className={`mt-4 w-full rounded-lg border px-3 py-2 text-sm outline-none ${
+          !address.street.trim() ? "border-red-500" : "border-gray-300"
+        }`}
+      />
 
-            <input
-              type="text"
-              value={address.city}
-              onChange={(e) =>
-                setAddress({ ...address, city: e.target.value })
-              }
-              placeholder="City"
-              className="mt-3 w-full rounded-lg border px-3 py-2 text-sm outline-none"
-            />
+      <input
+        type="text"
+        value={address.city}
+        onChange={(e) =>
+          setAddress({ ...address, city: e.target.value })
+        }
+        placeholder="City"
+        className={`mt-3 w-full rounded-lg border px-3 py-2 text-sm outline-none ${
+          !address.city.trim() ? "border-red-500" : "border-gray-300"
+        }`}
+      />
 
-            <input
-              type="text"
-              value={address.pincode}
-              onChange={(e) =>
-                setAddress({ ...address, pincode: e.target.value })
-              }
-              placeholder="Pincode"
-              className="mt-3 w-full rounded-lg border px-3 py-2 text-sm outline-none"
-            />
+      <input
+        type="number"
+        value={address.pincode}
+        onChange={(e) =>
+          setAddress({ ...address, pincode: e.target.value })
+        }
+        placeholder="Pincode"
+        className={`mt-3 w-full rounded-lg border px-3 py-2 text-sm outline-none ${
+          !address.pincode.trim() ? "border-red-500" : "border-gray-300"
+        }`}
+      />
 
-            <div className="mt-4 flex justify-end gap-3">
-              <button
-                onClick={() => setShowAddressModal(false)}
-                className="rounded-lg border px-4 py-2 text-sm font-semibold"
-              >
-                Cancel
-              </button>
+      <div className="mt-4 flex justify-between gap-3">
+        <button
+          onClick={() => setShowAddressModal(false)}
+          className="rounded-lg border px-4 py-2 text-sm font-semibold"
+        >
+          Cancel
+        </button>
 
-              <button
-                onClick={handleAddressSubmit}
-                className="rounded-lg bg-[#ffd814] px-4 py-2 text-sm font-bold text-gray-900 hover:bg-[#f7ca00]"
-              >
-                Continue to Payment
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+        <button
+          onClick={handleAddressSubmit}
+          className="rounded-lg bg-[#ffd814] px-4 py-2 text-sm font-bold text-gray-900 hover:bg-[#f7ca00] disabled:bg-gray-300 disabled:cursor-not-allowed"
+          disabled={
+            !address.street.trim() ||
+            !address.city.trim() ||
+            !address.pincode.trim()
+          }
+        >
+          Continue to Payment
+        </button>
+      </div>
+    </div>
+  </div>
+)}
     </main>
   );
 }

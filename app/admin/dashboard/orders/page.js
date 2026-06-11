@@ -9,13 +9,15 @@ import {
   ReceiptText,
   IndianRupee,
 } from "lucide-react";
+import { getDecryptedItem } from "../../../auth/encript";
 
 export default function OrdersPage() {
   const [orders, setOrders] = useState([]);
-
+  const user = getDecryptedItem("user");
+  const [loading, setloading] = useState(true)
   useEffect(() => {
     fetchOrders();
-  }, []);
+  }, [loading,orders]);
 
   async function fetchOrders() {
     try {
@@ -23,7 +25,13 @@ export default function OrdersPage() {
       const result = await response.json();
 
       if (response.ok) {
-        setOrders(result.data);
+        const filteredOrders = result.data.filter(order =>
+          order.products.some(item => item.userId === user.id)
+        );
+        setloading(false)
+
+        setOrders(filteredOrders);
+
       }
     } catch (error) {
       console.error("Fetch orders error:", error);
@@ -51,14 +59,57 @@ export default function OrdersPage() {
       if (!response.ok) {
         throw new Error(result.error || "Delete failed");
       }
+      await fetchOrders()
 
-      setOrders((prev) => prev.filter((order) => order._id !== orderId));
+      // setOrders((prev) => prev.filter((order) => order._id !== orderId));
       alert("Order deleted successfully");
     } catch (error) {
       console.error("Delete error:", error);
       alert("Something went wrong");
     }
   }
+
+  const OrdersSkeleton = () => {
+    return (
+      <div className="grid gap-5">
+        {[1, 2, 3].map((item) => (
+          <div
+            key={item}
+            className="overflow-hidden rounded-2xl border bg-white shadow-sm"
+          >
+            <div className="flex flex-col gap-4 border-b bg-slate-50 p-4 md:flex-row md:items-center md:justify-between">
+              <div className="space-y-2">
+                <div className="h-5 w-48 animate-pulse rounded bg-slate-200" />
+                <div className="h-3 w-32 animate-pulse rounded bg-slate-200" />
+              </div>
+
+              <div className="flex gap-2">
+                <div className="h-8 w-24 animate-pulse rounded-full bg-slate-200" />
+                <div className="h-8 w-28 animate-pulse rounded-full bg-slate-200" />
+                <div className="h-8 w-20 animate-pulse rounded-lg bg-slate-200" />
+              </div>
+            </div>
+
+            <div className="grid gap-4 p-4 lg:grid-cols-3">
+              {[1, 2, 3].map((card) => (
+                <div key={card} className="rounded-xl border bg-white p-4">
+                  <div className="mb-4 h-5 w-40 animate-pulse rounded bg-slate-200" />
+
+                  <div className="space-y-3">
+                    <div className="h-4 w-full animate-pulse rounded bg-slate-200" />
+                    <div className="h-4 w-5/6 animate-pulse rounded bg-slate-200" />
+                    <div className="h-4 w-4/6 animate-pulse rounded bg-slate-200" />
+                  </div>
+
+                  <div className="mt-4 h-16 animate-pulse rounded-xl bg-slate-200" />
+                </div>
+              ))}
+            </div>
+          </div>
+        ))}
+      </div>
+    );
+  };
 
   return (
     <main className="min-h-screen bg-slate-100 px-4 py-6">
@@ -70,15 +121,15 @@ export default function OrdersPage() {
           </p>
         </div>
 
-        {orders.length === 0 ? (
+        {loading ? (
+          <OrdersSkeleton />
+        ) : orders.length === 0 ? (
           <div className="rounded-2xl border bg-white p-10 text-center shadow-sm">
             <div className="mx-auto mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-yellow-50">
               <Package className="h-10 w-10 text-yellow-600" />
             </div>
 
-            <h2 className="text-xl font-bold text-slate-900">
-              No orders found
-            </h2>
+            <h2 className="text-xl font-bold text-slate-900">No orders found</h2>
 
             <p className="mt-2 text-sm text-slate-500">
               Orders will appear here after successful checkout.

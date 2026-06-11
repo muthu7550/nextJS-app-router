@@ -9,7 +9,7 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
 
     const utrNumber = body.payment?.utrNumber;
-
+   console.log(body)
     if (!utrNumber) {
       return NextResponse.json(
         { error: "UTR number is required" },
